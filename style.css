@@ -1,0 +1,620 @@
+/* Pinterest-style CSS with pastel colors and cozy aesthetics */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Comfortaa', 'Montserrat', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #FFF0F5 0%, #FAF0E6 100%);
+    color: #2F4F4F;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.music-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.85);
+    border: 2px solid #DB7093;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.music-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(255, 240, 245, 0.95);
+}
+
+.music-toggle:active {
+    transform: scale(0.95);
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease;
+}
+
+.screen.hidden {
+    display: none;
+    opacity: 0;
+}
+
+/* Fade animations */
+.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.fade-in {
+    opacity: 1;
+    transition: opacity 1s ease;
+}
+
+/* Start Screen */
+#start-screen {
+    background: url('assets/backgrounds/start_screen.png') center/cover no-repeat, linear-gradient(135deg, #FFF0F5 0%, #FAF0E6 100%);
+    padding: 20px;
+    text-align: center;
+}
+
+.game-title {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: #2F4F4F;
+    margin-bottom: 30px;
+    max-width: 800px;
+    line-height: 1.4;
+    text-shadow: 
+        -1px -1px 0 #FFF0F5,
+        1px -1px 0 #FFF0F5,
+        -1px 1px 0 #FFF0F5,
+        1px 1px 0 #FFF0F5,
+        -2px -2px 0 #FFF0F5,
+        2px -2px 0 #FFF0F5,
+        -2px 2px 0 #FFF0F5,
+        2px 2px 0 #FFF0F5;
+    font-weight: bold;
+}
+
+.game-subtitle {
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+    color: #2F4F4F;
+    margin: 30px 0;
+    max-width: 600px;
+    line-height: 1.6;
+    text-shadow: 
+        -1px -1px 0 #FFF0F5,
+        1px -1px 0 #FFF0F5,
+        -1px 1px 0 #FFF0F5,
+        1px 1px 0 #FFF0F5;
+    font-weight: 500;
+}
+
+/* Polaroid Card */
+.polaroid-card {
+    background: white;
+    padding: 15px 15px 50px 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    transform: rotate(-2deg);
+    margin: 20px;
+    max-width: 300px;
+    transition: transform 0.3s ease;
+}
+
+.polaroid-card:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.polaroid-photo {
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(135deg, #E0F2F1 0%, #FFF0F5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.polaroid-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.polaroid-caption {
+    font-size: 0.9rem;
+    color: #2F4F4F;
+    margin-top: 15px;
+    line-height: 1.4;
+    font-style: italic;
+}
+
+.placeholder-photo {
+    font-size: 2rem;
+    color: #DB7093;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Pixel Couple */
+.pixel-couple {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.pixel-person {
+    width: 40px;
+    height: 60px;
+    position: relative;
+}
+
+.pixel-person.kristina {
+    background: #DB7093;
+}
+
+.pixel-person.you {
+    background: #2F4F4F;
+}
+
+/* Start Button */
+.start-button {
+    background: #DB7093;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-family: inherit;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(219, 112, 147, 0.3);
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.start-button:hover {
+    background: #C76083;
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(219, 112, 147, 0.4);
+}
+
+.start-button:active {
+    transform: scale(0.98);
+}
+
+/* Particles */
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    font-size: 20px;
+    animation: float-up 4s ease-in-out infinite;
+    opacity: 0.6;
+}
+
+@keyframes float-up {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Intro Screen */
+#intro-screen {
+    background: rgba(47, 79, 79, 0.95);
+    padding: 40px;
+}
+
+.intro-text {
+    max-width: 700px;
+    text-align: center;
+}
+
+.intro-text p {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: #FFF0F5;
+    line-height: 1.8;
+    opacity: 0;
+    animation: fade-in 2s ease forwards;
+}
+
+@keyframes fade-in {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Game Screens */
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.game-ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.score-display, .lives-display {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2F4F4F;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dialog Box */
+.dialog-box {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px 30px;
+    border-radius: 15px;
+    max-width: 80%;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+    animation: dialog-pop 0.3s ease;
+}
+
+.dialog-box.hidden {
+    display: none;
+}
+
+.dialog-box p {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    color: #2F4F4F;
+    line-height: 1.5;
+    margin: 5px 0;
+}
+
+.dialog-box .speaker {
+    font-weight: bold;
+    color: #DB7093;
+}
+
+@keyframes dialog-pop {
+    0% {
+        transform: translateX(-50%) scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Complete Cards */
+.complete-card {
+    max-width: 400px;
+    transform: rotate(1deg);
+}
+
+/* Next Button */
+.next-button {
+    background: #E0F2F1;
+    color: #2F4F4F;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-family: inherit;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    margin-top: 30px;
+}
+
+.next-button:hover {
+    background: #D0E2E1;
+    transform: scale(1.05);
+}
+
+/* Final Screen */
+#final-screen {
+    background: linear-gradient(135deg, #FFF0F5 0%, #FAF0E6 100%);
+    padding: 20px;
+    padding-top: 900px;
+    overflow-y: auto;
+}
+
+.pinterest-collage {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    justify-items: center;
+}
+
+.collage-photo {
+    transform: rotate(var(--rotation, 0deg));
+    max-width: 200px;
+    transition: transform 0.3s ease;
+}
+
+.collage-photo:hover {
+    transform: rotate(0deg) scale(1.05);
+    z-index: 10;
+}
+
+.collage-photo:nth-child(1) { --rotation: -5deg; margin-top: 20px; }
+.collage-photo:nth-child(2) { --rotation: 3deg; margin-top: -10px; }
+.collage-photo:nth-child(3) { --rotation: -2deg; margin-top: 15px; }
+.collage-photo:nth-child(4) { --rotation: 4deg; margin-top: -15px; }
+.collage-photo:nth-child(5) { --rotation: -3deg; margin-top: 10px; }
+.collage-photo:nth-child(6) { --rotation: 2deg; margin-top: -20px; }
+
+.birthday-message {
+    max-width: 700px;
+    text-align: center;
+    margin: 30px auto;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.birthday-message h1 {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: #DB7093;
+    margin-bottom: 20px;
+}
+
+.birthday-message p {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    line-height: 1.8;
+    margin: 15px 0;
+}
+
+.birthday-message .ps {
+    font-style: italic;
+    color: #DB7093;
+    margin-top: 25px;
+}
+
+.final-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.final-button {
+    background: #DB7093;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1rem;
+    font-family: inherit;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(219, 112, 147, 0.3);
+    transition: all 0.3s ease;
+}
+
+.final-button:hover {
+    background: #C76083;
+    transform: scale(1.05);
+}
+
+/* Chapter Selection */
+.chapter-selection {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin: 30px 0;
+    max-width: 500px;
+    text-align: center;
+}
+
+.chapter-selection.hidden {
+    display: none;
+}
+
+.chapter-selection h2 {
+    font-size: 1.5rem;
+    color: #2F4F4F;
+    margin-bottom: 20px;
+}
+
+.chapter-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.chapter-select-button {
+    background: #E0F2F1;
+    color: #2F4F4F;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1rem;
+    font-family: inherit;
+    border-radius: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.chapter-select-button:hover {
+    background: #D0E2E1;
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chapter-select-button:active {
+    transform: scale(0.98);
+}
+
+/* Gallery Screen */
+#gallery-screen {
+    background: rgba(47, 79, 79, 0.95);
+    padding: 20px;
+}
+
+.gallery-container {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    max-width: 100%;
+    padding: 20px;
+    scroll-snap-type: x mandatory;
+}
+
+.gallery-slide {
+    scroll-snap-align: center;
+    flex-shrink: 0;
+}
+
+.gallery-slide .polaroid-card {
+    transform: rotate(0deg);
+    max-width: 250px;
+}
+
+.close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #2F4F4F;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: inherit;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.close-button:hover {
+    background: white;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 1.1rem;
+    }
+    
+    .game-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .polaroid-card {
+        max-width: 250px;
+        padding: 10px 10px 40px 10px;
+    }
+    
+    .polaroid-photo {
+        height: 200px;
+    }
+    
+    .start-button {
+        padding: 12px 30px;
+        font-size: 1rem;
+    }
+    
+    .dialog-box {
+        bottom: 50px;
+        padding: 15px 20px;
+    }
+    
+    .pinterest-collage {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .collage-photo {
+        max-width: 140px;
+    }
+    
+    .birthday-message {
+        padding: 20px;
+    }
+    
+    .final-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .final-button {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pinterest-collage {
+        grid-template-columns: 1fr;
+    }
+    
+    .collage-photo {
+        max-width: 180px;
+        margin: 0 auto;
+    }
+}

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Наш бесконечный маршрут</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <button id="music-toggle" class="music-toggle" title="Включить/выключить музыку">🎵</button>
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <div class="particles-container" id="start-particles"></div>
+            <h1 class="game-title">Вот ты и попалась, я заразил твой компьютер тысячей троянов, единственный способ избавиться от них, это пройти эту игру 😈</h1>
+            <div class="polaroid-card">
+                <div class="polaroid-photo" style="display:flex; gap:10px; justify-content:center; align-items:center;">
+                    <img src="assets/characters/kristina.png" alt="Кристина" style="width:45%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div class="pixel-person kristina" style="display:none"></div>
+                    <img src="assets/characters/you_curly.png" alt="Кудрявый ты" style="width:45%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div class="pixel-person you" style="display:none"></div>
+                </div>
+            </div>
+            <p class="game-subtitle">Это интерактивная хроника того, как мы глупенько дурачились, любили и поддерживали друг друга, и это то, какой ты запомнилась мне за 25 год, готова вспомнить всё что было?</p>
+            <button id="start-btn" class="start-button">это типо кнопочка старт 😈</button>
+        </div>
+
+        <!-- Intro Screen -->
+        <div id="intro-screen" class="screen hidden">
+            <div class="intro-text">
+                <p>«Всё началось объективно в Питере. Обычные будни, общие друзья, но пара событий заставила нас посмотреть друг на друга совсем иначе...»</p>
+            </div>
+        </div>
+
+        <!-- Chapter 1 Screen -->
+        <div id="chapter1-screen" class="screen hidden">
+            <canvas id="chapter1-canvas"></canvas>
+            <div class="game-ui">
+                <div class="score-display">Очки: <span id="chapter1-score">0</span></div>
+                <div class="lives-display">❤️ <span id="chapter1-lives">5</span></div>
+            </div>
+            <div id="chapter1-dialog" class="dialog-box hidden"></div>
+        </div>
+
+        <!-- Chapter 1 Complete Screen -->
+        <div id="chapter1-complete" class="screen hidden">
+            <div class="polaroid-card complete-card">
+                <div class="polaroid-photo">
+                    <img src="assets/ui/photo_mazapark.png" alt="Мазапарк с кудрями" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div class="placeholder-photo" style="display:none">📸 Фото с катка или Мазапарка</div>
+                </div>
+                <p class="polaroid-caption">Глава 1 пройдена! Ты показала мне что создать уют можно даже там где казалось бы только умирать и остаётся, ты помогла мне бросить кумарить и дала понять что такое одеваться стильно, и я безумно благодарен тебе. Но впереди нас ждало только больше...</p>
+            </div>
+            <button id="chapter2-btn" class="next-button">ЕБАШИТЬ ДАЛЬШЕ 🌊</button>
+        </div>
+
+        <!-- Chapter 2 Screen -->
+        <div id="chapter2-screen" class="screen hidden">
+            <canvas id="chapter2-canvas"></canvas>
+            <div class="game-ui">
+                <div class="score-display">Очки: <span id="chapter2-score">0</span></div>
+                <div class="lives-display">❤️ <span id="chapter2-lives">5</span></div>
+            </div>
+            <div id="chapter2-dialog" class="dialog-box hidden"></div>
+        </div>
+
+        <!-- Chapter 2 Complete Screen -->
+        <div id="chapter2-complete" class="screen hidden">
+            <div class="polaroid-card complete-card">
+                <div class="polaroid-photo">
+                    <img src="assets/ui/photo_moscow.png" alt="Счастливые в Москве" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div class="placeholder-photo" style="display:none">📸 Фото из Москвы или у Маяка</div>
+                </div>
+                <p class="polaroid-caption">Глава 2 пройдена! Мы научились находить потерянные телефоны, прощать глупости, устраивать лучшие сюрпризы и плакать от красоты Москва-Сити. Но впереди, самый экстремальный этап. Время сесть за руль 💀</p>
+            </div>
+            <button id="chapter3-btn" class="next-button">СДАТЬ НА ПРАВА И ПОЕХАТЬ! 🚗</button>
+        </div>
+
+        <!-- Chapter 3 Screen -->
+        <div id="chapter3-screen" class="screen hidden">
+            <canvas id="chapter3-canvas"></canvas>
+            <div class="game-ui">
+                <div class="score-display">Очки: <span id="chapter3-score">0</span></div>
+                <div class="lives-display">❤️ <span id="chapter3-lives">5</span></div>
+            </div>
+            <div id="chapter3-dialog" class="dialog-box hidden"></div>
+        </div>
+
+        <!-- Final Screen -->
+        <div id="final-screen" class="screen hidden">
+            <div class="particles-container" id="final-particles"></div>
+            <div class="birthday-message">
+                <h1>🎉 С Днём Рождения, Кристиночка! 🎉</h1>
+                <p>Ты прошла этот праздничный маршрут, как проходишь со мной через все жизненные приключения, с улыбкой, невероятным мужеством, заботой и любовью.</p>
+                <p>Мы выкидывали подвал из подвала, бросали курить, убирали квартиры дедов, мчались за телефоном на такси на заснеженном маяке, обкрадывали Этажи, отбивались от ДПС на угнанной Камри и помогали друг другу в самых сложных ситуациях.</p>
+                <p>Каждый такой момент, моё самое дорогое сокровище. Спасибо тебе за твой характер, за твою глупенькость, за твою бесконечную поддержку и за то, что ты есть в моей жизни. И помни, куда бы мы ни бежали, главное, что мы бежим вместе ❤️</p>
+                <p class="ps">P.S. Твой материальный подарок в реальном мире заблокирован сложнейшей системой безопасности военного стандарта. Чтобы получить его, подойди ко мне и поцелуй 😘</p>
+            </div>
+            <div class="pinterest-collage">
+                <div class="collage-photo polaroid-card">
+                    <div class="polaroid-photo">
+                        <img src="assets/ui/photo_basement.png" alt="Подвал у Паши" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="placeholder-photo" style="display:none">🏠 Подвал у Паши</div>
+                    </div>
+                </div>
+                <div class="collage-photo polaroid-card">
+                    <div class="polaroid-photo">
+                        <img src="assets/ui/photo_skating.png" alt="Кристина на катке" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="placeholder-photo" style="display:none">⛸️ Кристина на катке</div>
+                    </div>
+                </div>
+                <div class="collage-photo polaroid-card">
+                    <div class="polaroid-photo">
+                        <img src="assets/ui/photo_mazapark.png" alt="Мазапарк с кудрями" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="placeholder-photo" style="display:none">💇 Мазапарк с кудрями</div>
+                    </div>
+                </div>
+                <div class="collage-photo polaroid-card">
+                    <div class="polaroid-photo">
+                        <img src="assets/ui/photo_lighthouse.png" alt="Шепелевский маяк" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="placeholder-photo" style="display:none">🗼 Шепелевский маяк</div>
+                    </div>
+                </div>
+                <div class="collage-photo polaroid-card">
+                    <div class="polaroid-photo">
+                        <img src="assets/ui/photo_moscow.png" alt="Счастливые в Москве" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="placeholder-photo" style="display:none">🏙️ Счастливые в Москве</div>
+                    </div>
+                </div>
+                <div class="collage-photo polaroid-card">
+                    <div class="polaroid-photo">
+                        <img src="assets/ui/photo_camry.png" alt="Дедовская Камри" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="placeholder-photo" style="display:none">🚗 Дедовская Камри</div>
+                    </div>
+                </div>
+            </div>
+            <div class="final-buttons">
+                <button id="restart-btn" class="final-button">🔄 Сыграть ещё раз</button>
+                <button id="gallery-btn" class="final-button">📸 Наша галерея</button>
+            </div>
+            <div id="chapter-selection" class="chapter-selection hidden">
+                <h2>Выбери главу для начала:</h2>
+                <div class="chapter-buttons">
+                    <button id="chapter1-select" class="chapter-select-button">Глава 1: Подвал</button>
+                    <button id="chapter2-select" class="chapter-select-button">Глава 2: Москва</button>
+                    <button id="chapter3-select" class="chapter-select-button">Глава 3: Камри</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Screen -->
+        <div id="gallery-screen" class="screen hidden">
+            <div class="gallery-container">
+                <div class="gallery-slide">
+                    <div class="polaroid-card">
+                        <div class="polaroid-photo">
+                            <img src="assets/ui/photo_basement.png" alt="Подвал у Паши" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <div class="placeholder-photo" style="display:none">🏠 Подвал у Паши</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-slide">
+                    <div class="polaroid-card">
+                        <div class="polaroid-photo">
+                            <img src="assets/ui/photo_skating.png" alt="Кристина на катке" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <div class="placeholder-photo" style="display:none">⛸️ Кристина на катке</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-slide">
+                    <div class="polaroid-card">
+                        <div class="polaroid-photo">
+                            <img src="assets/ui/photo_mazapark.png" alt="Мазапарк с кудрями" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <div class="placeholder-photo" style="display:none">💇 Мазапарк с кудрями</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-slide">
+                    <div class="polaroid-card">
+                        <div class="polaroid-photo">
+                            <img src="assets/ui/photo_lighthouse.png" alt="Шепелевский маяк" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <div class="placeholder-photo" style="display:none">🗼 Шепелевский маяк</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-slide">
+                    <div class="polaroid-card">
+                        <div class="polaroid-photo">
+                            <img src="assets/ui/photo_moscow.png" alt="Счастливые в Москве" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <div class="placeholder-photo" style="display:none">🏙️ Счастливые в Москве</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-slide">
+                    <div class="polaroid-card">
+                        <div class="polaroid-photo">
+                            <img src="assets/ui/photo_camry.png" alt="Дедовская Камри" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <div class="placeholder-photo" style="display:none">🚗 Дедовская Камри</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="close-gallery-btn" class="close-button">✕ Закрыть</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen hidden">
+            <div class="particles-container" id="game-over-particles"></div>
+            <div class="polaroid-card complete-card">
+                <div class="polaroid-photo">
+                    <div class="placeholder-photo">💔</div>
+                </div>
+                <p class="polaroid-caption">Ой, что-то пошло не так... Но в жизни так бывает, не правда ли? Главное, что мы всегда поднимаемся и продолжаем идти вместе. Попробуй ещё раз, я знаю, что ты справишься! ❤️</p>
+            </div>
+            <button id="retry-btn" class="next-button">Попробовать ещё раз 🔄</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
