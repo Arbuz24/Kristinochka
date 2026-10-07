@@ -262,7 +262,7 @@ class AudioSystem {
 
     playCollect() {
         if (this.muted) return;
-        if (this.playSfx('collect')) return;
+        if (this.playSfx('collect', { volume: 0.15 })) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -281,7 +281,7 @@ class AudioSystem {
 
     playPop() {
         if (this.muted) return;
-        if (this.playSfx('pop')) return;
+        if (this.playSfx('pop', { volume: 0.85 })) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -317,9 +317,9 @@ class AudioSystem {
         oscillator.stop(this.audioContext.currentTime + 0.2);
     }
     
-    playSiren() {
+    playSiren(opts = {}) {
         if (this.muted) return;
-        if (this.playSfx('siren')) return;
+        if (this.playSfx('siren', opts)) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -402,6 +402,8 @@ const audioSystem = new AudioSystem();
         ['respawn',     'sfx_respawn.mp3',     2],
         ['celebration', 'sfx_celebration.mp3', 1],
         ['whoosh',      'sfx_whoosh.mp3',      2],
+        ['camera', 'sfx_camera.mp3', 2],
+        ['dog',    'sfx_dog.mp3',    2],
     ];
     lib.forEach(([name, file, pool]) => audioSystem.preloadSfx(name, SFX + file, pool));
 })();
@@ -2774,6 +2776,7 @@ function initChapter3() {
             direction: direction,
             imageName: 'dog'
         };
+        audioSystem.playSfx('dog');
     }
     
     // Spawn obstacles
@@ -3258,13 +3261,15 @@ function initChapter3() {
         // Spawn Monya occasionally (rare easter egg)
         if (Math.random() < 0.002) spawnMonya();
         
-        // Play siren during section 2 (600-1200 points)
+        // Real police siren (continuous loop) during section 2 (600-1200 points)
         if (score >= 600 && score < 1200) {
-            const now = Date.now();
-            if (now - lastSirenTime > 2000) { // Play every 2 seconds
-                audioSystem.playSiren();
-                lastSirenTime = now;
+            if (!sirenPlaying) {
+                audioSystem.playSiren({ loop: true, volume: 0.3 });
+                sirenPlaying = true;
             }
+        } else if (sirenPlaying) {
+            audioSystem.stopSfx('siren');
+            sirenPlaying = false;
         }
         
         // Collision detection - collectibles
@@ -3309,6 +3314,8 @@ function initChapter3() {
                 document.getElementById('chapter3-lives').textContent = lives;
                 if (lives <= 0) {
                     GameState.chapter3Running = false;
+                    audioSystem.stopSfx('siren');
+                    sirenPlaying = false;
                     showScreen('game-over-screen');
                 }
                 return false;
@@ -3372,6 +3379,8 @@ function initChapter3() {
             inputDisabled = true;
             // Stop spawning obstacles and collectibles
             cutsceneActive = true;
+            audioSystem.stopSfx('siren');
+            sirenPlaying = false;
         }
         
         // Handle ending sequence
@@ -3433,6 +3442,7 @@ function initChapter3() {
                     endingStartTime = Date.now();
                     flashActive = true;
                     flashAlpha = 1;
+                    audioSystem.playSfx('camera');
                 }
             } else if (endingPhase === 3) {
                 // Phase 3: Camera flash effect
