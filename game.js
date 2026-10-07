@@ -1319,6 +1319,7 @@ function initChapter2() {
     let currentSection = 0;
     let currentEvent = 0;
     let gravityInverted = false;
+    let moscowStartScore = 1800; // score captured when entering the Moscow section; death there respawns at section start instead of the whole chapter
     
     // Initialize UI
     document.getElementById('chapter2-lives').textContent = lives;
@@ -1657,8 +1658,8 @@ function initChapter2() {
         
         // Fourth section (moscow): Flappy Bird style with towers
         if (currentSection === 3) {
-            // Fixed horizontal distance between towers (same as min distance for small obstacles)
-            const fixedDistance = 450;
+            // Fixed horizontal distance between towers
+            const fixedDistance = 580; // wider spacing -> more reaction time between towers
             let spawnX = canvas.width + 100;
             if (obstacles.length > 0) {
                 const lastObstacle = obstacles[obstacles.length - 1];
@@ -1668,8 +1669,8 @@ function initChapter2() {
             }
             
             // Random gap position for the passage
-            const gapHeight = 450;
-            const gapY = Math.random() * (canvas.height - gapHeight - 200) + 100;
+            const gapHeight = Math.min(520, canvas.height - 160); // generous passage, capped so both towers stay on-screen
+            const gapY = 100 + Math.random() * Math.max(0, canvas.height - gapHeight - 200);
             
             // Random tower type
             const towerTypes = ['tower', 'tower1', 'tower2', 'tower3', 'tower4'];
@@ -1803,6 +1804,9 @@ function initChapter2() {
                 currentSection = i + 1;
                 if (currentSection < sections.length) {
                     gravityInverted = sections[currentSection].gravity;
+                    if (currentSection === 3) {
+                        moscowStartScore = score; // capture entry score for the Moscow sub-checkpoint
+                    }
                 }
                 break;
             }
@@ -2143,6 +2147,7 @@ function initChapter2() {
         if (currentSection === 3) {
             // Flappy Bird style gravity for Moscow section
             player.velocityY += 0.5; // Constant downward acceleration
+            if (player.velocityY > 9) player.velocityY = 9; // terminal velocity - a missed tap no longer spirals into an unrecoverable dive
             player.y += player.velocityY;
             
             // Ceiling collision
@@ -2372,7 +2377,9 @@ function initChapter2() {
         }
         
         // Collision detection - obstacles
+        let moscowDeath = false;
         obstacles = obstacles.filter(o => {
+            if (moscowDeath) return false; // clear remaining towers on Moscow respawn
             if (player.x < o.x + o.width &&
                 player.x + player.width > o.x &&
                 player.y < o.y + o.height &&
@@ -2382,17 +2389,24 @@ function initChapter2() {
                     audioSystem.playHit();
                     document.getElementById('chapter2-lives').textContent = lives;
                     if (lives <= 0) {
-                        GameState.chapter2Running = false;
-                        showScreen('game-over-screen');
+                        if (currentSection === 3) {
+                            moscowDeath = true; // sub-checkpoint: respawn at Moscow start instead of restarting the whole chapter
+                        } else {
+                            GameState.chapter2Running = false;
+                            showScreen('game-over-screen');
+                        }
                     }
                 }
                 return false;
             }
             return true;
         });
+        if (moscowDeath) {
+            respawnMoscow();
+        }
         
-        // Check chapter completion
-        if (score >= 2400) {
+        // Check chapter completion (Moscow section shortened: ~30 forgiving towers instead of ~60)
+        if (score >= 2100) {
             GameState.chapter2Running = false;
             localStorage.setItem('chapterProgress', '3');
             showScreen('chapter2-complete');
@@ -2450,6 +2464,22 @@ function initChapter2() {
         }
     }
     
+    // Moscow sub-checkpoint: dying in the flappy section respawns at its start
+    // (keeps progress from earlier sections) instead of restarting the whole chapter.
+    function respawnMoscow() {
+        lives = 5;
+        score = moscowStartScore;
+        document.getElementById('chapter2-lives').textContent = lives;
+        document.getElementById('chapter2-score').textContent = score;
+        obstacles = [];
+        collectibles = [];
+        player.x = 100;
+        player.y = (canvas.height - player.height) / 2;
+        player.velocityY = 0;
+        player.invincible = true;
+        setTimeout(() => { player.invincible = false; }, 1500); // brief grace period while new towers spawn in
+    }
+
     // Keyboard
     const keys = {};
     document.addEventListener('keydown', (e) => {
