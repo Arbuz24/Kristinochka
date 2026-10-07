@@ -116,16 +116,25 @@ body {
 }
 
 .loading-cta {
-    display: inline-block;
-    margin-top: 14px;
-    padding: 12px 28px;
+    display: none;
+    margin-top: 18px;
+    padding: 14px 32px;
     background: #DB7093;
     color: #fff;
+    border: none;
     border-radius: 25px;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
+    font-family: inherit;
     font-weight: bold;
+    cursor: pointer;
     box-shadow: 0 4px 8px rgba(219, 112, 147, 0.3);
     animation: loading-pulse 1.5s ease-in-out infinite;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.loading-cta.show {
+    display: inline-block;
 }
 
 @keyframes loading-pulse {
