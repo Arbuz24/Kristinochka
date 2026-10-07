@@ -564,7 +564,7 @@ function initChapter1() {
     // Physics
     const gravity = 1.5;
     const jumpForce = -30;
-    const groundY = canvas.height - 100;
+    const groundY = canvas.height; // floor at the very bottom of the screen (no separate ground bar)
     
     // Collectibles and obstacles
     let collectibles = [];
@@ -1341,7 +1341,7 @@ function initChapter2() {
     // Physics
     const gravity = 1.5;
     const jumpForce = -30;
-    const groundY = canvas.height - 100;
+    const groundY = canvas.height; // floor at the very bottom of the screen (no separate ground bar)
     const ceilingY = 50;
     
     // Collectibles and obstacles
