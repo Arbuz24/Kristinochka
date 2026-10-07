@@ -378,7 +378,7 @@ canvas {
     position: absolute;
     top: 20px;
     left: 20px;
-    right: 20px;
+    right: 70px;
     display: flex;
     justify-content: space-between;
     z-index: 10;
