@@ -178,6 +178,9 @@ class ParticleSystem {
 class AudioSystem {
     constructor() {
         this.audioContext = null;
+        this.sfx = {};            // name -> { pool:[Audio], idx, loaded }  (MP3 SFX layer)
+        this.sfxVolume = 0.4;     // master SFX volume (0..1)
+        this.muted = false;       // synced with the music mute (🎵/🔇 button)
     }
 
     init() {
@@ -186,7 +189,61 @@ class AudioSystem {
         }
     }
 
+    // ---- MP3 sound-effect layer (HTML5 Audio clone pool) ----
+    // Real .mp3 SFX (assets/sfx/*.mp3) replace the synthesized beeps. A small
+    // pool of Audio clones per sound lets rapid triggers (jump/flap/click)
+    // overlap instead of cutting each other off. A missing file flips
+    // loaded=false on 'error' -> playSfx returns false -> callers fall back
+    // to the synth beeps, so the game never goes silent on a 404.
+    preloadSfx(name, path, poolSize = 3) {
+        const entry = { pool: [], idx: 0, loaded: true };
+        const make = () => {
+            const a = new Audio(path);
+            a.preload = 'auto';
+            a.volume = this.sfxVolume;
+            return a;
+        };
+        const primary = make();
+        primary.addEventListener('error', () => { entry.loaded = false; });
+        entry.pool = [primary];
+        for (let i = 1; i < poolSize; i++) entry.pool.push(make());
+        this.sfx[name] = entry;
+    }
+
+    playSfx(name, opts = {}) {
+        const entry = this.sfx[name];
+        if (this.muted || !entry || !entry.loaded) return false;
+        const pool = entry.pool;
+        const a = pool[entry.idx % pool.length];
+        entry.idx = (entry.idx + 1) % pool.length;
+        try {
+            a.currentTime = 0;
+            a.volume = (opts.volume != null ? opts.volume : this.sfxVolume);
+            a.playbackRate = opts.rate || 1;
+            a.loop = !!opts.loop;
+            a.muted = false;
+            const p = a.play();
+            if (p && p.catch) p.catch(() => {});
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    stopSfx(name) {
+        const entry = this.sfx[name];
+        if (!entry) return;
+        entry.pool.forEach(a => { try { a.pause(); a.currentTime = 0; a.loop = false; } catch (e) {} });
+    }
+
+    setSfxMuted(muted) {
+        this.muted = muted;
+        if (muted) Object.keys(this.sfx).forEach(name => this.stopSfx(name));
+    }
+
     playClick() {
+        if (this.muted) return;
+        if (this.playSfx('click')) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -204,6 +261,8 @@ class AudioSystem {
     }
 
     playCollect() {
+        if (this.muted) return;
+        if (this.playSfx('collect')) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -221,6 +280,8 @@ class AudioSystem {
     }
 
     playPop() {
+        if (this.muted) return;
+        if (this.playSfx('pop')) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -238,6 +299,8 @@ class AudioSystem {
     }
 
     playHit() {
+        if (this.muted) return;
+        if (this.playSfx('hit')) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -255,6 +318,8 @@ class AudioSystem {
     }
     
     playSiren() {
+        if (this.muted) return;
+        if (this.playSfx('siren')) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -279,6 +344,8 @@ class AudioSystem {
     }
     
     playCelebration() {
+        if (this.muted) return;
+        if (this.playSfx('celebration')) return;
         this.init();
         const now = this.audioContext.currentTime;
         
@@ -313,6 +380,31 @@ class AudioSystem {
 }
 
 const audioSystem = new AudioSystem();
+
+// ---- Preload MP3 sound effects (assets/sfx/*.mp3) ----
+// Real SFX replace the synthesized beeps. A small clone-pool per sound lets
+// rapid triggers (jump/flap/click) overlap instead of cutting each other off.
+// Missing files fall back to synth (preloadSfx flips loaded=false on error).
+(function preloadSfxLibrary() {
+    const SFX = 'assets/sfx/';
+    const lib = [
+        ['jump',        'sfx_jump.mp3',        4],
+        ['flap',        'sfx_flap.mp3',        4],
+        ['land',        'sfx_land.mp3',        3],
+        ['collect',     'sfx_collect.mp3',     4],
+        ['pop',         'sfx_pop.mp3',         3],
+        ['hit',         'sfx_hit.mp3',         2],
+        ['click',       'sfx_click.mp3',       3],
+        ['siren',       'sfx_siren.mp3',       1],
+        ['victory',     'sfx_victory.mp3',     1],
+        ['gameover',    'sfx_gameover.mp3',    1],
+        ['dialog',      'sfx_dialog.mp3',      2],
+        ['respawn',     'sfx_respawn.mp3',     2],
+        ['celebration', 'sfx_celebration.mp3', 1],
+        ['whoosh',      'sfx_whoosh.mp3',      2],
+    ];
+    lib.forEach(([name, file, pool]) => audioSystem.preloadSfx(name, SFX + file, pool));
+})();
 
 // Music System - background music playback (MP3 via HTML5 Audio)
 // 6 треков группы «Дайте Танк (!)» — по одному на каждый игровой сегмент.
@@ -441,6 +533,7 @@ function playMusicForScreen(screenId) {
 // Music toggle button — works on all screens
 document.getElementById('music-toggle').addEventListener('click', () => {
     const muted = musicSystem.toggleMute();
+    audioSystem.setSfxMuted(muted);
     document.getElementById('music-toggle').textContent = muted ? '🔇' : '🎵';
 });
 
@@ -466,11 +559,14 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.remove('hidden');
     GameState.currentScreen = screenId;
     
-    // Initialize screen-specific functionality
+    // Initialize screen-specific functionality + SFX for key transitions
     if (screenId === 'game-over-screen') {
+        audioSystem.playSfx('gameover');
         initGameOverScreen();
     } else if (screenId === 'final-screen') {
         initFinalScreen();
+    } else if (screenId === 'chapter1-complete' || screenId === 'chapter2-complete') {
+        audioSystem.playSfx('victory');
     }
 
     // Switch background music based on screen
@@ -951,6 +1047,7 @@ function initChapter1() {
     function showDialog(dialog) {
         // Prevent multiple dialogs
         if (!GameState.chapter1Running || GameState.dialogActive) return;
+        audioSystem.playSfx('dialog');
         
         GameState.dialogActive = true;
         GameState.chapter1Running = false;
@@ -1150,8 +1247,10 @@ function initChapter1() {
         
         // Ground collision
         if (player.y >= groundY - player.height) {
+            const wasAirborne = !player.grounded;
             player.y = groundY - player.height;
             player.velocityY = 0;
+            if (wasAirborne) audioSystem.playSfx('land');
             player.grounded = true;
             player.jumping = false;
             player.doubleJump = false;
@@ -1256,9 +1355,11 @@ function initChapter1() {
             player.velocityY = jumpForce;
             player.grounded = false;
             player.jumping = true;
+            audioSystem.playSfx('jump');
         } else if (player.jumping && !player.doubleJump) {
             player.velocityY = jumpForce * 0.8;
             player.doubleJump = true;
+            audioSystem.playSfx('jump');
         }
     }
     
@@ -1711,6 +1812,7 @@ function initChapter2() {
     function showDialog(dialog, callback = null) {
         // Prevent multiple dialogs
         if (!GameState.chapter2Running || GameState.dialogActive) return;
+        audioSystem.playSfx('dialog');
         
         GameState.dialogActive = true;
         GameState.chapter2Running = false;
@@ -2123,6 +2225,7 @@ function initChapter2() {
                 // Teleport to next section when taxi goes off screen
                 if (taxi.x > canvas.width + 200) {
                     currentSection = 1;
+                    audioSystem.playSfx('whoosh');
                     gravityInverted = sections[1].gravity;
                     player.x = 100;
                     player.y = groundY - 200;
@@ -2362,6 +2465,7 @@ function initChapter2() {
                     ], () => {
                         // After dialog, transition to section 3
                         currentSection = 2;
+                        audioSystem.playSfx('whoosh');
                         gravityInverted = sections[2].gravity;
                         player.x = 100;
                         player.y = groundY - 200;
@@ -2440,6 +2544,7 @@ function initChapter2() {
         // Flappy Bird style jump for Moscow section
         if (currentSection === 3) {
             player.velocityY = -8; // Instant upward jump
+            audioSystem.playSfx('flap');
             return;
         }
         
@@ -2448,18 +2553,22 @@ function initChapter2() {
                 player.velocityY = -jumpForce;
                 player.grounded = false;
                 player.jumping = true;
+                audioSystem.playSfx('jump');
             } else if (player.jumping && !player.doubleJump) {
                 player.velocityY = -jumpForce * 0.8;
                 player.doubleJump = true;
+                audioSystem.playSfx('jump');
             }
         } else {
             if (player.grounded) {
                 player.velocityY = jumpForce;
                 player.grounded = false;
                 player.jumping = true;
+                audioSystem.playSfx('jump');
             } else if (player.jumping && !player.doubleJump) {
                 player.velocityY = jumpForce * 0.8;
                 player.doubleJump = true;
+                audioSystem.playSfx('jump');
             }
         }
     }
@@ -2467,6 +2576,7 @@ function initChapter2() {
     // Moscow sub-checkpoint: dying in the flappy section respawns at its start
     // (keeps progress from earlier sections) instead of restarting the whole chapter.
     function respawnMoscow() {
+        audioSystem.playSfx('respawn');
         lives = 5;
         score = moscowStartScore;
         document.getElementById('chapter2-lives').textContent = lives;
@@ -2854,6 +2964,7 @@ function initChapter3() {
     function showDialog(dialog) {
         // Prevent multiple dialogs
         if (!GameState.chapter3Running || GameState.dialogActive) return;
+        audioSystem.playSfx('dialog');
         
         GameState.dialogActive = true;
         GameState.chapter3Running = false;
