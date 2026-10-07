@@ -281,7 +281,7 @@ class AudioSystem {
 
     playPop() {
         if (this.muted) return;
-        if (this.playSfx('pop', { volume: 0.85 })) return;
+        if (this.playSfx('pop', { volume: 0.9 })) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -300,7 +300,7 @@ class AudioSystem {
 
     playHit() {
         if (this.muted) return;
-        if (this.playSfx('hit')) return;
+        if (this.playSfx('hit', { volume: 0.7 })) return;
         this.init();
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -1252,7 +1252,7 @@ function initChapter1() {
             const wasAirborne = !player.grounded;
             player.y = groundY - player.height;
             player.velocityY = 0;
-            if (wasAirborne) audioSystem.playSfx('land');
+            if (wasAirborne) audioSystem.playSfx('land', { volume: 0.6 });
             player.grounded = true;
             player.jumping = false;
             player.doubleJump = false;
@@ -3442,7 +3442,8 @@ function initChapter3() {
                     endingStartTime = Date.now();
                     flashActive = true;
                     flashAlpha = 1;
-                    audioSystem.playSfx('camera');
+                    audioSystem.playSfx('camera', { volume: 0.7 });
+                    setTimeout(() => audioSystem.playSfx('whoosh', { volume: 0.5 }), 600);
                 }
             } else if (endingPhase === 3) {
                 // Phase 3: Camera flash effect
