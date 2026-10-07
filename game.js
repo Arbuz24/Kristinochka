@@ -665,6 +665,13 @@ function initChapter1() {
         
         // Check if we should spawn trash mountain (only on basement and grandpa backgrounds)
         const spawnTrashMountain = (bgImageName === 'chapter1_basement' || bgImageName === 'chapter1_grandpa');
+
+        // Decide the grandpa obstacle type NOW (trash_mountain vs sofa) so the fairness
+        // gap below knows whether the upcoming obstacle is a fast-moving sofa. Before,
+        // the `if (spawnTrashMountain)` branch shadowed the grandpa case, so
+        // currentWillBeMoving was always false on grandpa and the trash->sofa fairness
+        // never fired -- a big trash_mountain could be followed by a sofa too close to dodge.
+        const willSpawnSofa = (bgImageName === 'chapter1_grandpa') && (Math.random() < 0.5);
         
         // Determine obstacle size (small: 80x80 or large: 160x160)
         const isLarge = Math.random() < 0.5;
@@ -680,13 +687,11 @@ function initChapter1() {
             
             // Check if current obstacle will be moving (based on type)
             let currentWillBeMoving = false;
-            if (spawnTrashMountain) {
-                currentWillBeMoving = false;
-            } else if (bgImageName === 'chapter1_basement') {
-                currentWillBeMoving = false;
-            } else if (bgImageName === 'chapter1_grandpa') {
-                currentWillBeMoving = true; // sofa
+            if (bgImageName === 'chapter1_grandpa') {
+                // sofa drives at the player (speed 20); trash_mountain doesn't move.
+                currentWillBeMoving = willSpawnSofa;
             }
+            // other chapter1 backgrounds (basement box, quitting, ice, piter) don't move
             
             // Fairness fix: a large non-moving obstacle (big trash_mountain) followed by a
             // fast-moving obstacle (sofa on grandpa bg) was unfair — the player must
@@ -755,7 +760,7 @@ function initChapter1() {
                     };
                 }
             } else if (bgImageName === 'chapter1_grandpa') {
-                if (Math.random() < 0.5) {
+                if (!willSpawnSofa) {
                     // Spawn trash mountain with random size
                     obstacle = {
                         x: canvas.width + 100,
@@ -768,7 +773,8 @@ function initChapter1() {
                         isLarge: isLarge
                     };
                 } else {
-                    // Spawn sofa (moves faster like taxi)
+                    // Spawn sofa -- drives at the player at 20px/frame (faster than the
+                    // 12px/frame trash/box clutter) so it feels like it's bearing down.
                     obstacle = {
                         x: canvas.width + 100,
                         y: groundY - 80,
@@ -778,7 +784,7 @@ function initChapter1() {
                         name: 'диван',
                         imageName: 'sofa',
                         isLarge: false,
-                        speed: 12
+                        speed: 20
                     };
                 }
             } else {
