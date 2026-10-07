@@ -1071,17 +1071,10 @@ function initChapter1() {
             }
         }
         
-        // Ground
-        ctx.fillStyle = '#FAF0E6';
-        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+        // Ground fill disabled — the background image already covers the full canvas;
+        // the previous solid #FAF0E6 strip covered the bottom of colored scenes and read as a glaring white bar.
         
-        // Ground line
-        ctx.strokeStyle = '#DB7093';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(0, groundY);
-        ctx.lineTo(canvas.width, groundY);
-        ctx.stroke();
+        // Ground line disabled (paired with the removed solid ground strip).
     }
     
     // Draw player
@@ -1903,13 +1896,8 @@ function initChapter2() {
             }
         }
         
-        // Ground/Ceiling
-        ctx.fillStyle = '#FAF0E6';
-        if (gravityInverted) {
-            ctx.fillRect(0, 0, canvas.width, ceilingY);
-        } else {
-            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-        }
+        // Ground/Ceiling fill disabled — let the background image show through (top and bottom);
+        // the previous solid #FAF0E6 strip covered the bottom/top of colored scenes and read as a glaring white bar.
     }
     
     // Draw taxi (only in lighthouse section)
