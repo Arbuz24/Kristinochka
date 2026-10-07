@@ -8,6 +8,17 @@
 </head>
 <body>
     <div id="game-container">
+        <!-- Loading / Audio-Unlock Splash — shown until all assets preload + user taps to enter -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-content">
+                <div class="loading-heart">💖</div>
+                <h2 class="loading-title" id="loading-title">Загрузка…</h2>
+                <div class="loading-bar-container">
+                    <div class="loading-bar" id="loading-bar"></div>
+                </div>
+                <p class="loading-hint" id="loading-hint">Готовим для Кристины идеальную версию 💕</p>
+            </div>
+        </div>
         <button id="music-toggle" class="music-toggle" title="Включить/выключить музыку">🎵</button>
         <!-- Start Screen -->
         <div id="start-screen" class="screen">

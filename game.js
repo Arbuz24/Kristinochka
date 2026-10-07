@@ -42,7 +42,7 @@ class AssetLoader {
         return this.images[name] || null;
     }
 
-    async loadAssets() {
+    async loadAssets(onProgress) {
         const assetPaths = {
             // Backgrounds
             'start_screen': 'assets/backgrounds/start_screen.png',
@@ -113,8 +113,14 @@ class AssetLoader {
             
         };
 
+        this.totalCount = Object.keys(assetPaths).length;
+        this.loadedCount = 0;
         const promises = Object.entries(assetPaths).map(([name, path]) => 
-            this.loadImage(path, name)
+            this.loadImage(path, name).then(img => {
+                this.loadedCount++;
+                if (onProgress) onProgress(this.loadedCount, this.totalCount);
+                return img;
+            })
         );
 
         await Promise.all(promises);
@@ -3562,6 +3568,41 @@ function initGameOverScreen() {
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', async () => {
-    await assetLoader.loadAssets();
+    const loadingScreen = document.getElementById('loading-screen');
+    const loadingBar = document.getElementById('loading-bar');
+    const loadingTitle = document.getElementById('loading-title');
+    const loadingHint = document.getElementById('loading-hint');
+
+    // Preload ALL assets before showing the start screen — no placeholders mid-game.
+    // Safety timeout: on a flaky mobile network some image may stall; proceed anyway.
+    const preload = assetLoader.loadAssets((loaded, total) => {
+        const pct = total ? Math.round((loaded / total) * 100) : 0;
+        if (loadingBar) loadingBar.style.width = pct + '%';
+    });
+    await Promise.race([preload, new Promise(r => setTimeout(r, 90000))]);
+
+    // Preload complete. Wire up the start screen (still hidden behind the splash).
     initStartScreen();
+
+    // Reveal the "tap to enter" CTA. This first tap also unlocks audio (autoplay
+    // policy) so menu music («Утро») plays from this point on — before Start.
+    if (loadingBar) loadingBar.style.width = '100%';
+    if (loadingTitle) loadingTitle.textContent = 'Готово!';
+    if (loadingHint) loadingHint.innerHTML = 'Всё загружено — идеальная версия ждёт 💕<br><span class="loading-cta">🔊 Нажмите, чтобы войти</span>';
+
+    let _splashDismissed = false;
+    const dismissSplash = () => {
+        if (_splashDismissed) return;
+        _splashDismissed = true;
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            loadingScreen.removeEventListener('click', dismissSplash);
+        }
+        // Start menu music on this first user gesture (autoplay policy unlock).
+        try { audioSystem.init(); } catch (e) { /* ignore */ }
+        musicSystem.play('start');
+    };
+    if (loadingScreen) {
+        loadingScreen.addEventListener('click', dismissSplash);
+    }
 });
