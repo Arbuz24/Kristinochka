@@ -671,7 +671,15 @@ function initChapter1() {
                 currentWillBeMoving = true; // sofa
             }
             
-            if (isLarge && lastWasLarge) {
+            // Fairness fix: a large non-moving obstacle (big trash_mountain) followed by a
+            // fast-moving obstacle (sofa on grandpa bg) was unfair — the player must
+            // double-jump the large one and would land right on the approaching sofa.
+            // Force a big gap (trash fully off-screen) so the player lands first and can
+            // react to (jump over) the approaching sofa. Keeps both logics intact:
+            // big trash still needs a double jump; sofa still drives at the player.
+            if (lastWasLarge && !lastIsMoving && currentWillBeMoving) {
+                minDistance = canvas.width + 300;
+            } else if (isLarge && lastWasLarge) {
                 if (lastIsMoving && currentWillBeMoving) {
                     minDistance = 1350; // both moving large (min and max)
                 } else {
@@ -753,7 +761,7 @@ function initChapter1() {
                         name: 'диван',
                         imageName: 'sofa',
                         isLarge: false,
-                        speed: 20
+                        speed: 12
                     };
                 }
             } else {
