@@ -23,28 +23,34 @@ class AssetLoader {
         this.totalCount = 0;
     }
 
-    loadImage(path, name) {
-        return new Promise((resolve, reject) => {
+    loadImage(path, name, attempt = 1) {
+        return new Promise((resolve) => {
             const img = new Image();
+            const fail = (reason) => {
+                console.warn(`Asset load failed (attempt ${attempt}/3): ${path} — ${reason}`);
+                if (attempt < 3) {
+                    // Retry with backoff. On mobile, a 235 MB first download causes
+                    // transient timeouts; previously the only "fix" was dying →
+                    // location.reload() (HTTP cache made re-fetches succeed). Retrying
+                    // inside the FIRST load makes every asset arrive on run #1.
+                    setTimeout(() => this.loadImage(path, name, attempt + 1).then(resolve), 600 * attempt);
+                } else {
+                    resolve(null);
+                }
+            };
             img.onload = () => {
+                // Reject rare 0x0 "successful" loads (empty/corrupt response).
+                if (!img.complete || img.naturalWidth === 0) { fail('naturalWidth=0'); return; }
                 this.images[name] = img;
-                // Wait for the image to be DECODED before resolving. onload fires as
-                // soon as the bytes are downloaded, but large PNGs are not yet decoded
-                // / ready to draw — the first drawImage would paint nothing. This is
-                // exactly why textures only appeared after the 2nd load: dying →
-                // location.reload() served images from HTTP cache AND the browser had
-                // already decoded them during the first run. Decoding here makes the
-                // very first play show every texture immediately.
+                // Wait for DECODE so the first drawImage never paints a blank frame
+                // (onload fires on download-complete, before the PNG is decoded).
                 if (typeof img.decode === 'function') {
                     img.decode().then(() => resolve(img)).catch(() => resolve(img));
                 } else {
                     resolve(img);
                 }
             };
-            img.onerror = () => {
-                console.warn(`Failed to load image: ${path}`);
-                resolve(null);
-            };
+            img.onerror = () => fail('network/onerror');
             img.src = path;
         });
     }
@@ -56,71 +62,71 @@ class AssetLoader {
     async loadAssets(onProgress) {
         const assetPaths = {
             // Backgrounds
-            'start_screen': 'assets/backgrounds/start_screen.png',
-            'chapter1_piter': 'assets/backgrounds/chapter1_piter.png',
-            'chapter1_basement': 'assets/backgrounds/chapter1_basement.png',
-            'chapter1_quitting': 'assets/backgrounds/chapter1_quitting.png',
-            'chapter1_grandpa': 'assets/backgrounds/chapter1_grandpa.png',
-            'chapter1_ice': 'assets/backgrounds/chapter1_ice.png',
-            'chapter1_mazapark': 'assets/backgrounds/chapter1_mazapark.png',
-            'chapter2_lighthouse': 'assets/backgrounds/chapter2_lighthouse.png',
-            'chapter2_etazhi': 'assets/backgrounds/chapter2_etazhi.png',
-            'chapter2_birthday': 'assets/backgrounds/chapter2_birthday.png',
-            'chapter2_moscow': 'assets/backgrounds/chapter2_moscow.png',
-            'chapter3_road': 'assets/backgrounds/chapter3_road.png',
+            'start_screen': 'assets/backgrounds/start_screen.png?v=5',
+            'chapter1_piter': 'assets/backgrounds/chapter1_piter.png?v=5',
+            'chapter1_basement': 'assets/backgrounds/chapter1_basement.png?v=5',
+            'chapter1_quitting': 'assets/backgrounds/chapter1_quitting.png?v=5',
+            'chapter1_grandpa': 'assets/backgrounds/chapter1_grandpa.png?v=5',
+            'chapter1_ice': 'assets/backgrounds/chapter1_ice.png?v=5',
+            'chapter1_mazapark': 'assets/backgrounds/chapter1_mazapark.png?v=5',
+            'chapter2_lighthouse': 'assets/backgrounds/chapter2_lighthouse.png?v=5',
+            'chapter2_etazhi': 'assets/backgrounds/chapter2_etazhi.png?v=5',
+            'chapter2_birthday': 'assets/backgrounds/chapter2_birthday.png?v=5',
+            'chapter2_moscow': 'assets/backgrounds/chapter2_moscow.png?v=5',
+            'chapter3_road': 'assets/backgrounds/chapter3_road.png?v=5',
             
             // Characters
-            'kristina': 'assets/characters/kristina.png',
-            'you': 'assets/characters/you.png',
-            'you_curly': 'assets/characters/you_curly.png',
-            'you_cake_face': 'assets/characters/you_cake_face.png',
-            'camry': 'assets/characters/camry.png',
-            'dog': 'assets/characters/dog.png',
+            'kristina': 'assets/characters/kristina.png?v=5',
+            'you': 'assets/characters/you.png?v=5',
+            'you_curly': 'assets/characters/you_curly.png?v=5',
+            'you_cake_face': 'assets/characters/you_cake_face.png?v=5',
+            'camry': 'assets/characters/camry.png?v=5',
+            'dog': 'assets/characters/dog.png?v=5',
             
             // Collectibles
-            'curl': 'assets/collectibles/curl.png',
-            'bubble_tea': 'assets/collectibles/bubble_tea.png',
-            'mlp_card': 'assets/collectibles/mlp_card.png',
-            'frambini': 'assets/collectibles/frambini.png',
-            'snowflake': 'assets/collectibles/snowflake.png',
-            'ticket': 'assets/collectibles/ticket.png',
-            'dog_food': 'assets/collectibles/dog_food.png',
-            'license': 'assets/collectibles/license.png',
-            'medkit': 'assets/collectibles/medkit.png',
-            'bowling_pin': 'assets/collectibles/bowling_pin.png',
-            'balloon': 'assets/collectibles/balloon.png',
+            'curl': 'assets/collectibles/curl.png?v=5',
+            'bubble_tea': 'assets/collectibles/bubble_tea.png?v=5',
+            'mlp_card': 'assets/collectibles/mlp_card.png?v=5',
+            'frambini': 'assets/collectibles/frambini.png?v=5',
+            'snowflake': 'assets/collectibles/snowflake.png?v=5',
+            'ticket': 'assets/collectibles/ticket.png?v=5',
+            'dog_food': 'assets/collectibles/dog_food.png?v=5',
+            'license': 'assets/collectibles/license.png?v=5',
+            'medkit': 'assets/collectibles/medkit.png?v=5',
+            'bowling_pin': 'assets/collectibles/bowling_pin.png?v=5',
+            'balloon': 'assets/collectibles/balloon.png?v=5',
             
             // Obstacles
-            'trash_mountain': 'assets/obstacles/trash_mountain.png',
-            'cigarette': 'assets/obstacles/cigarette.png',
-            'captain_jack': 'assets/obstacles/captain_jack.png',
-            'sofa': 'assets/obstacles/sofa.png',
-            'box': 'assets/obstacles/box.png',
-            'billiard_ball': 'assets/obstacles/billiard_ball.png',
-            'bowling_ball': 'assets/obstacles/bowling_ball.png',
-            'adult_skater': 'assets/obstacles/adult_skater.png',
-            'child_skater': 'assets/obstacles/child_skater.png',
-            'snowdrift': 'assets/obstacles/snowdrift.png',
-            'taxi': 'assets/obstacles/taxi.png',
-            'guard': 'assets/obstacles/guard.png',
-            'cake': 'assets/obstacles/cake.png',
-            'tower': 'assets/obstacles/tower.png',
-            'tower1': 'assets/obstacles/tower1.png',
-            'tower2': 'assets/obstacles/tower2.png',
-            'tower3': 'assets/obstacles/tower3.png',
-            'tower4': 'assets/obstacles/tower4.png',
-            'police': 'assets/obstacles/police.png',
-            'platform': 'assets/obstacles/platform.png',
-            'barrier': 'assets/obstacles/barrier.png',
-            'block': 'assets/obstacles/block.png',
+            'trash_mountain': 'assets/obstacles/trash_mountain.png?v=5',
+            'cigarette': 'assets/obstacles/cigarette.png?v=5',
+            'captain_jack': 'assets/obstacles/captain_jack.png?v=5',
+            'sofa': 'assets/obstacles/sofa.png?v=5',
+            'box': 'assets/obstacles/box.png?v=5',
+            'billiard_ball': 'assets/obstacles/billiard_ball.png?v=5',
+            'bowling_ball': 'assets/obstacles/bowling_ball.png?v=5',
+            'adult_skater': 'assets/obstacles/adult_skater.png?v=5',
+            'child_skater': 'assets/obstacles/child_skater.png?v=5',
+            'snowdrift': 'assets/obstacles/snowdrift.png?v=5',
+            'taxi': 'assets/obstacles/taxi.png?v=5',
+            'guard': 'assets/obstacles/guard.png?v=5',
+            'cake': 'assets/obstacles/cake.png?v=5',
+            'tower': 'assets/obstacles/tower.png?v=5',
+            'tower1': 'assets/obstacles/tower1.png?v=5',
+            'tower2': 'assets/obstacles/tower2.png?v=5',
+            'tower3': 'assets/obstacles/tower3.png?v=5',
+            'tower4': 'assets/obstacles/tower4.png?v=5',
+            'police': 'assets/obstacles/police.png?v=5',
+            'platform': 'assets/obstacles/platform.png?v=5',
+            'barrier': 'assets/obstacles/barrier.png?v=5',
+            'block': 'assets/obstacles/block.png?v=5',
             
             // UI Photos
-            'photo_basement': 'assets/ui/photo_basement.png',
-            'photo_skating': 'assets/ui/photo_skating.png',
-            'photo_mazapark': 'assets/ui/photo_mazapark.png',
-            'photo_lighthouse': 'assets/ui/photo_lighthouse.png',
-            'photo_moscow': 'assets/ui/photo_moscow.png',
-            'photo_camry': 'assets/ui/photo_camry.png',
+            'photo_basement': 'assets/ui/photo_basement.png?v=5',
+            'photo_skating': 'assets/ui/photo_skating.png?v=5',
+            'photo_mazapark': 'assets/ui/photo_mazapark.png?v=5',
+            'photo_lighthouse': 'assets/ui/photo_lighthouse.png?v=5',
+            'photo_moscow': 'assets/ui/photo_moscow.png?v=5',
+            'photo_camry': 'assets/ui/photo_camry.png?v=5',
             
         };
 
