@@ -386,7 +386,7 @@ const audioSystem = new AudioSystem();
         ['flap',        'sfx_flap.mp3',        4],
         ['land',        'sfx_land.mp3',        3],
         ['collect',     'sfx_collect.mp3',     4],
-        ['pop',         'sfx_pop.mp3?v=14',         3],
+        ['pop',         'sfx_pop.mp3?v=15',         3],
         ['hit',         'sfx_hit.mp3',         2],
         ['click',       'sfx_click.mp3',       3],
         ['siren',       'sfx_siren.mp3',       1],
@@ -396,7 +396,7 @@ const audioSystem = new AudioSystem();
         ['respawn',     'sfx_respawn.mp3',     2],
         ['celebration', 'sfx_celebration.mp3', 1],
         ['whoosh',      'sfx_whoosh.mp3',      2],
-        ['camera', 'sfx_camera.mp3?v=14', 2],
+        ['camera', 'sfx_camera.mp3?v=15', 2],
         ['dog',    'sfx_dog.mp3',    2],
     ];
     lib.forEach(([name, file, pool]) => audioSystem.preloadSfx(name, SFX + file, pool));
