@@ -281,20 +281,7 @@ class AudioSystem {
 
     playPop() {
         if (this.muted) return;
-        this.init();
-        const ctx = this.audioContext;
-        const now = ctx.currentTime;
-        // Short, loud balloon-style BANG: sharp broadband pop transient + low thump body.
-        this._noiseBurst(now, 0.13, 1600, 0.8, 0.8);
-        const osc = ctx.createOscillator();
-        const og = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(180, now);
-        osc.frequency.exponentialRampToValueAtTime(60, now + 0.09);
-        og.gain.setValueAtTime(0.45, now);
-        og.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-        osc.connect(og); og.connect(ctx.destination);
-        osc.start(now); osc.stop(now + 0.12);
+        this.playSfx('pop', { volume: 0.9 });   // real balloon-pop MP3 (assets/sfx/sfx_pop.mp3)
     }
 
     playHit() {
@@ -342,78 +329,12 @@ class AudioSystem {
         oscillator.stop(now + 1.2);
     }
 
-    // Broadband noise burst through a bandpass. Powers the balloon pop (BANG)
-    // and the camera xenon flash "paff". `when` is an audioContext time.
-    _noiseBurst(when, dur, centerFreq, q, vol) {
-        const ctx = this.audioContext;
-        const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
-        const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        const bp = ctx.createBiquadFilter();
-        bp.type = 'bandpass';
-        bp.frequency.value = centerFreq;
-        bp.Q.value = q;
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(vol, when);
-        g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-        src.connect(bp); bp.connect(g); g.connect(ctx.destination);
-        src.start(when); src.stop(when + dur + 0.02);
-    }
+    // SFX pop + camera now play from real MP3 files (assets/sfx/sfx_pop.mp3, sfx_camera.mp3).
 
-    // Photo-eject "swoosh": noise with a rising bandpass sweep (photo sliding out).
-    _ejectSweep(when) {
-        const ctx = this.audioContext;
-        const dur = 0.28;
-        const len = Math.floor(ctx.sampleRate * dur);
-        const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        const bp = ctx.createBiquadFilter();
-        bp.type = 'bandpass';
-        bp.Q.value = 0.7;
-        bp.frequency.setValueAtTime(500, when);
-        bp.frequency.exponentialRampToValueAtTime(2400, when + dur);
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.0001, when);
-        g.gain.linearRampToValueAtTime(0.22, when + 0.05);
-        g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-        src.connect(bp); bp.connect(g); g.connect(ctx.destination);
-        src.start(when); src.stop(when + dur + 0.02);
-    }
-
-    // Polaroid composite: shutter click (file) + xenon flash + motor whirr + photo eject.
+    // Polaroid instant-camera: real recording (shutter + flash + motor + photo eject).
     playCamera() {
         if (this.muted) return;
-        this.init();
-        this.playSfx('camera', { volume: 0.7 });    // 1) real shutter click
-        const ctx = this.audioContext;
-        const t0 = ctx.currentTime;
-        this._noiseBurst(t0, 0.06, 2200, 1.2, 0.4); // 2) flash "paff" (coincident)
-        const mT = t0 + 0.18;                         // 3) motor whirr (~90Hz + tremolo)
-        const motor = ctx.createOscillator();
-        const mGain = ctx.createGain();
-        const lfo = ctx.createOscillator();
-        const lfoGain = ctx.createGain();
-        motor.type = 'sawtooth';
-        motor.frequency.setValueAtTime(95, mT);
-        motor.frequency.linearRampToValueAtTime(84, mT + 0.55);
-        lfo.type = 'sine';
-        lfo.frequency.value = 22;
-        lfoGain.gain.value = 0.05;
-        mGain.gain.setValueAtTime(0.0001, mT);
-        mGain.gain.linearRampToValueAtTime(0.16, mT + 0.04);
-        mGain.gain.setValueAtTime(0.16, mT + 0.45);
-        mGain.gain.exponentialRampToValueAtTime(0.0001, mT + 0.62);
-        lfo.connect(lfoGain); lfoGain.connect(mGain.gain);
-        motor.connect(mGain); mGain.connect(ctx.destination);
-        motor.start(mT); motor.stop(mT + 0.64);
-        lfo.start(mT + 0.06); lfo.stop(mT + 0.64);
-        this._ejectSweep(t0 + 1.0);                   // 4) photo eject (~1s after shutter)
+        this.playSfx('camera', { volume: 0.85 });   // real polaroid MP3 (assets/sfx/sfx_camera.mp3)
     }
     
     playCelebration() {
@@ -465,7 +386,7 @@ const audioSystem = new AudioSystem();
         ['flap',        'sfx_flap.mp3',        4],
         ['land',        'sfx_land.mp3',        3],
         ['collect',     'sfx_collect.mp3',     4],
-        ['pop',         'sfx_pop.mp3',         3],
+        ['pop',         'sfx_pop.mp3?v=14',         3],
         ['hit',         'sfx_hit.mp3',         2],
         ['click',       'sfx_click.mp3',       3],
         ['siren',       'sfx_siren.mp3',       1],
@@ -475,7 +396,7 @@ const audioSystem = new AudioSystem();
         ['respawn',     'sfx_respawn.mp3',     2],
         ['celebration', 'sfx_celebration.mp3', 1],
         ['whoosh',      'sfx_whoosh.mp3',      2],
-        ['camera', 'sfx_camera.mp3', 2],
+        ['camera', 'sfx_camera.mp3?v=14', 2],
         ['dog',    'sfx_dog.mp3',    2],
     ];
     lib.forEach(([name, file, pool]) => audioSystem.preloadSfx(name, SFX + file, pool));
