@@ -342,6 +342,156 @@ body {
     }
 }
 
+/* ============================================================ */
+/* Start Screen — romantic enhancement (v6)                     */
+/* Pure-CSS overlays + frosted text panels + heart border frame. */
+/* Preserves the existing background photo, polaroid, text &     */
+/* buttons — only adds decoration and improves legibility.       */
+/* ============================================================ */
+#start-screen {
+    --start-heart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23DB7093'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 1.01 4.5 2.09C13.09 4.01 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+    position: relative;   /* .screen is already absolute → ensures a containing block for the overlays */
+    overflow: hidden;
+}
+
+/* Dreamy rosy glow + soft vignette: bright halo behind the couple,
+   gently darkened edges so the frosted text panels stay readable
+   against any part of the photo. Painted above the bg image. */
+#start-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 72% 55% at 50% 40%, rgba(255,255,255,0.40) 0%, rgba(255,228,236,0.16) 46%, rgba(0,0,0,0) 74%),
+        radial-gradient(ellipse 130% 120% at 50% 50%, rgba(0,0,0,0) 52%, rgba(110,66,74,0.34) 100%);
+    animation: start-glow-breathe 7s ease-in-out infinite;
+}
+
+/* Floral heart border frame — soft double line, inset glow, and a
+   little pink heart in each corner. Pure decoration, clicks pass through. */
+#start-screen::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    z-index: 0;
+    pointer-events: none;
+    border: 3px double rgba(219, 112, 147, 0.55);
+    border-radius: 18px;
+    box-shadow:
+        inset 0 0 40px rgba(255, 182, 193, 0.26),
+        0 0 22px rgba(219, 112, 147, 0.18);
+    background-image:
+        var(--start-heart), var(--start-heart),
+        var(--start-heart), var(--start-heart);
+    background-repeat: no-repeat;
+    background-position:
+        7px 7px,
+        calc(100% - 7px) 7px,
+        7px calc(100% - 7px),
+        calc(100% - 7px) calc(100% - 7px);
+    background-size: 26px 26px;
+    opacity: 0.9;
+}
+
+@keyframes start-glow-breathe {
+    0%, 100% { opacity: 0.82; }
+    50%      { opacity: 1; }
+}
+
+/* Lift the real content above both overlays (particles stay at z-index:1). */
+#start-screen .game-title,
+#start-screen .game-subtitle,
+#start-screen .polaroid-card,
+#start-screen .start-button {
+    position: relative;
+    z-index: 2;
+}
+
+/* Start-screen text panels — restyled to match the final-screen birthday card:
+   solid white rounded panels, pink heading, soft shadow, no float animation.
+   Overrides the earlier plain text-shadow rules. */
+.game-title {
+    color: #DB7093;
+    padding: 22px 26px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(219, 112, 147, 0.22);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    text-shadow: none;
+    font-weight: bold;
+}
+
+.game-subtitle {
+    color: #2c2c3a;
+    padding: 18px 24px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(219, 112, 147, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    text-shadow: none;
+    line-height: 1.8;
+    font-weight: 500;
+}
+
+@keyframes start-gentle-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+/* Deeper, warmer shadow + thin rosy frame on the polaroid. */
+.polaroid-card {
+    background: #fffdfb;
+    box-shadow:
+        0 10px 24px rgba(139, 90, 98, 0.28),
+        0 2px 6px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(219, 112, 147, 0.35);
+}
+
+.polaroid-card:hover {
+    transform: rotate(0deg) scale(1.03);
+    box-shadow:
+        0 14px 30px rgba(139, 90, 98, 0.34),
+        0 2px 6px rgba(0, 0, 0, 0.14);
+}
+
+/* Gradient + breathing glow on the start button (no transform in the
+   keyframe, so the hover scale still works). */
+.start-button {
+    background: linear-gradient(135deg, #DB7093 0%, #FFB6C1 100%);
+    font-weight: bold;
+    box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.55),
+        0 6px 16px rgba(219, 112, 147, 0.45);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    animation: start-pulse 2.4s ease-in-out infinite;
+}
+
+.start-button:hover {
+    background: linear-gradient(135deg, #C76083 0%, #FF9FB0 100%);
+    transform: scale(1.06);
+    box-shadow:
+        0 0 0 5px rgba(255, 255, 255, 0.65),
+        0 8px 22px rgba(219, 112, 147, 0.55);
+}
+
+@keyframes start-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 4px rgba(255,255,255,0.55), 0 6px 16px rgba(219,112,147,0.45);
+        filter: brightness(1);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(255,255,255,0.72), 0 8px 22px rgba(219,112,147,0.6);
+        filter: brightness(1.06);
+    }
+}
+
+
 /* Intro Screen */
 #intro-screen {
     background: rgba(47, 79, 79, 0.95);
@@ -527,6 +677,20 @@ canvas {
     margin-top: 25px;
 }
 
+/* Handwritten sign-off note — bottom-right of the final page */
+.handwritten-signature {
+    margin: 2.5em 20px 1em auto;
+    max-width: 460px;
+    text-align: right;
+    font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+    font-style: italic;
+    font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+    color: #2c2c3a;
+    line-height: 1.55;
+    transform: rotate(-3deg);
+    transform-origin: right bottom;
+}
+
 .final-buttons {
     display: flex;
     gap: 20px;
@@ -552,6 +716,8 @@ canvas {
     background: #C76083;
     transform: scale(1.05);
 }
+
+.final-button .ui-icon { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-left: 6px; }
 
 /* Chapter Selection */
 .chapter-selection {
@@ -645,6 +811,242 @@ canvas {
 
 .close-button:hover {
     background: white;
+}
+
+/* Full-screen polaroid photo viewer — click any polaroid photo to zoom it larger. */
+.photo-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 24px;
+    cursor: zoom-out;
+}
+
+.photo-viewer.hidden {
+    display: none;
+}
+
+.photo-viewer-card {
+    transform: rotate(0deg) !important;
+    max-width: min(90vw, 560px);
+    width: 100%;
+    margin: 0;
+    padding: 18px 18px 56px 18px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+    cursor: default;
+    animation: photo-viewer-pop 0.28s ease;
+}
+
+.photo-viewer-card:hover {
+    transform: rotate(0deg) scale(1) !important;
+}
+
+.photo-viewer-card .polaroid-photo {
+    height: min(72vh, 720px);
+    background: #000;
+}
+
+.photo-viewer-card .polaroid-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;   /* show the WHOLE photo, no crop */
+    border-radius: 2px;
+}
+
+.photo-viewer-card .polaroid-caption {
+    text-align: center;
+    font-size: 1.05rem;
+}
+
+.photo-viewer-close {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: #2F4F4F;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-viewer-close:hover {
+    background: white;
+    transform: scale(1.08);
+}
+
+@keyframes photo-viewer-pop {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* ============================================================ */
+/* Inline SVG UI icons — replace emoji glyphs with crisp vectors */
+/* ============================================================ */
+.svg-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ui-icon { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.18em; fill: currentColor; }
+
+.music-toggle .ui-icon { width: 22px; height: 22px; color: #DB7093; vertical-align: middle; }
+.music-toggle.muted { opacity: 0.55; }
+
+.loading-heart { color: #DB7093; line-height: 1; }
+.loading-heart .ui-icon { width: 64px; height: 64px; vertical-align: middle; }
+
+.lives-display .ui-icon { width: 1.1em; height: 1.1em; vertical-align: -0.18em; color: #e85a8a; margin-right: 3px; }
+
+.next-button .ui-icon { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-left: 5px; }
+
+.close-button .ui-icon { width: 1em; height: 1em; vertical-align: -0.15em; margin-right: 5px; color: #2F4F4F; }
+.photo-viewer-close .ui-icon { width: 20px; height: 20px; color: #2F4F4F; }
+
+/* Particle system — SVG hearts/sparkles (rosy) instead of emoji */
+.particle { color: #ff6b95; }
+.particle svg { width: 18px; height: 18px; display: block; }
+
+/* ============================================================ */
+/* Contextual tutorial overlay (polaroid-styled, auto-dismiss)   */
+/* ============================================================ */
+.tutorial-overlay {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+    max-width: 440px;
+    width: calc(100% - 32px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+.tutorial-overlay.hidden { opacity: 0; pointer-events: none; }
+.tutorial-overlay:not(.hidden) {
+    opacity: 1;
+    animation: tutBob 3s ease-in-out infinite;
+}
+.tutorial-card {
+    pointer-events: auto;
+    background: linear-gradient(180deg, #ffffff 0%, #fff5f8 100%);
+    border: 2px solid #f7b6c2;
+    border-radius: 16px;
+    padding: 14px 18px 16px;
+    box-shadow: 0 12px 30px rgba(214, 51, 108, 0.25), 0 2px 8px rgba(0, 0, 0, 0.12);
+    text-align: center;
+    position: relative;
+}
+.tutorial-card::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-3deg);
+    width: 74px;
+    height: 20px;
+    background: rgba(255, 182, 193, 0.6);
+    border-radius: 3px;
+}
+.tutorial-icon { display: flex; justify-content: center; margin-bottom: 4px; }
+.tut-svg { width: 26px; height: 26px; fill: #e85a8a; filter: drop-shadow(0 1px 2px rgba(232, 90, 138, 0.4)); }
+.tutorial-title { margin: 0 0 4px; font-size: 1.05rem; color: #b03a5b; font-weight: 700; }
+.tutorial-body { margin: 0 0 10px; font-size: 0.92rem; line-height: 1.35; color: #5a4a52; }
+.tutorial-dismiss {
+    border: none;
+    cursor: pointer;
+    padding: 7px 20px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ff8fb1, #f76b95);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(247, 107, 149, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tutorial-dismiss:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(247, 107, 149, 0.55); }
+.tutorial-dismiss:active { transform: scale(0.96); }
+@keyframes tutBob {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-4px); }
+}
+
+@media (max-width: 768px) {
+    .photo-viewer-card .polaroid-photo {
+        height: 62vh;
+    }
+    .photo-viewer-close {
+        top: 12px;
+        right: 12px;
+    }
+}
+
+/* Ending polaroid — big printed photo shown right after the ЗАГС flash,
+   on a dark backdrop, while the photo-printing sound plays. Non-interactive. */
+#ending-polaroid {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.92);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 700ms ease, visibility 700ms ease;
+}
+
+#ending-polaroid.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ending-polaroid-card {
+    transform: scale(0.82) rotate(-3deg);
+    opacity: 0;
+    max-width: min(80vw, 520px);
+    width: 100%;
+    margin: 0;
+    padding: 18px 18px 56px 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    transition: opacity 800ms ease 250ms, transform 800ms ease 250ms;
+}
+
+#ending-polaroid.visible .ending-polaroid-card {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+}
+
+.ending-polaroid-card .polaroid-photo {
+    height: min(68vh, 680px);
+    background: #000;
+}
+
+.ending-polaroid-card .polaroid-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 2px;
+}
+
+.ending-polaroid-card .polaroid-caption {
+    text-align: center;
+    font-size: 1.05rem;
+}
+
+@media (max-width: 768px) {
+    .ending-polaroid-card .polaroid-photo {
+        height: 58vh;
+    }
 }
 
 /* Mobile Responsiveness */

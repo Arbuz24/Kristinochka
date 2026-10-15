@@ -12,7 +12,13 @@ const GameState = {
     chapter2Running: true,
     chapter3Running: true,
     dialogActive: false,
-    playerTransformed: false
+    playerTransformed: false,
+    // Checkpoint / resume system — set by whichever chapter is currently active.
+    // checkpoint: { chapter, section } = last segment the player reached.
+    // resumeGame: closure that restarts the current chapter at that checkpoint
+    //             (no page reload → no loading splash, no menu, no intro card).
+    checkpoint: null,
+    resumeGame: null
 };
 
 // Asset Loader
@@ -121,12 +127,13 @@ class AssetLoader {
             'block': 'assets/obstacles/block.png?v=5',
             
             // UI Photos
-            'photo_basement': 'assets/ui/photo_basement.png?v=5',
-            'photo_skating': 'assets/ui/photo_skating.png?v=5',
-            'photo_mazapark': 'assets/ui/photo_mazapark.png?v=5',
-            'photo_lighthouse': 'assets/ui/photo_lighthouse.png?v=5',
-            'photo_moscow': 'assets/ui/photo_moscow.png?v=5',
-            'photo_camry': 'assets/ui/photo_camry.png?v=5',
+            'photo_basement': 'assets/ui/photo_basement.jpg?v=5',
+            'photo_skating': 'assets/ui/photo_skating.jpg?v=5',
+            'photo_mazapark': 'assets/ui/photo_mazapark.jpg?v=5',
+            'photo_lighthouse': 'assets/ui/photo_lighthouse.jpg?v=5',
+            'photo_moscow': 'assets/ui/photo_moscow.jpg?v=5',
+            'photo_camry': 'assets/ui/photo_camry.jpg?v=5',
+            'photo_game_over': 'assets/ui/photo_game_over.jpg?v=5',
             
         };
 
@@ -152,7 +159,10 @@ class ParticleSystem {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.particles = [];
-        this.emojis = ['❤️', '✨', '💕', '🌸', '💖', '⭐'];
+        this.shapes = [
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21C12 21 4 14.5 4 9.5C4 6.5 6.5 4 9 4C10.5 4 12 5 12 6.5C12 5 13.5 4 15 4C17.5 4 20 6.5 20 9.5C20 14.5 12 21 12 21Z"/></svg>',
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>'
+        ];
         this.init();
     }
 
@@ -165,7 +175,7 @@ class ParticleSystem {
     createParticle() {
         const particle = document.createElement('div');
         particle.className = 'particle';
-        particle.textContent = this.emojis[Math.floor(Math.random() * this.emojis.length)];
+        particle.innerHTML = this.shapes[Math.floor(Math.random() * this.shapes.length)];
         particle.style.left = Math.random() * 100 + '%';
         particle.style.animationDuration = (3 + Math.random() * 3) + 's';
         particle.style.animationDelay = Math.random() * 2 + 's';
@@ -334,7 +344,10 @@ class AudioSystem {
     // Polaroid instant-camera: real recording (shutter + flash + motor + photo eject).
     playCamera() {
         if (this.muted) return;
-        this.playSfx('camera', { volume: 0.85 });   // real polaroid MP3 (assets/sfx/sfx_camera.mp3)
+        this.playSfx('camera', { volume: 1.0 });   // real polaroid MP3, compressed loud (assets/sfx/sfx_polaroid.mp3)
+        // Duck the background music harder during the shutter+eject (~2.5s) so the
+        // polaroid sits clearly on top. Music dips to 0.05, then ramps back.
+        musicSystem.duckFor(2900, 0.05);
     }
     
     playCelebration() {
@@ -387,7 +400,7 @@ const audioSystem = new AudioSystem();
         ['land',        'sfx_land.mp3',        3],
         ['collect',     'sfx_collect.mp3',     4],
         ['pop',         'sfx_pop.mp3?v=15',         3],
-        ['hit',         'sfx_hit.mp3',         2],
+        ['hit',         'sfx_hit.mp3?v=18',         2],
         ['click',       'sfx_click.mp3',       3],
         ['siren',       'sfx_siren.mp3',       1],
         ['victory',     'sfx_victory.mp3',     1],
@@ -396,7 +409,7 @@ const audioSystem = new AudioSystem();
         ['respawn',     'sfx_respawn.mp3',     2],
         ['celebration', 'sfx_celebration.mp3', 1],
         ['whoosh',      'sfx_whoosh.mp3',      2],
-        ['camera', 'sfx_camera.mp3?v=17', 2],
+        ['camera', 'sfx_polaroid.mp3?v=21', 2],
         ['dog',    'sfx_dog.mp3',    2],
     ];
     lib.forEach(([name, file, pool]) => audioSystem.preloadSfx(name, SFX + file, pool));
@@ -498,6 +511,27 @@ class MusicSystem {
         this.audio.volume = this.muted ? 0 : this.volume;
         return this.muted;
     }
+
+    // Duck the music for `ms` so a foreground SFX (e.g. the polaroid shutter)
+    // isn't masked at its quiet tail. Instantly dips to `level`, then ramps
+    // back to the normal volume. No-op if music is muted.
+    duckFor(ms, level = 0.08) {
+        if (this.muted) return;
+        clearInterval(this.fadeInterval);
+        this.audio.volume = level;
+        clearTimeout(this._duckTimer);
+        this._duckTimer = setTimeout(() => {
+            if (this.muted) return;
+            const target = this.volume;
+            let v = this.audio.volume;
+            clearInterval(this.fadeInterval);
+            this.fadeInterval = setInterval(() => {
+                v = Math.min(target, v + target / 12);
+                this.audio.volume = v;
+                if (v >= target) clearInterval(this.fadeInterval);
+            }, 40);
+        }, ms);
+    }
 }
 
 const musicSystem = new MusicSystem();
@@ -530,7 +564,11 @@ function playMusicForScreen(screenId) {
 document.getElementById('music-toggle').addEventListener('click', () => {
     const muted = musicSystem.toggleMute();
     audioSystem.setSfxMuted(muted);
-    document.getElementById('music-toggle').textContent = muted ? '🔇' : '🎵';
+    const mt = document.getElementById('music-toggle');
+    mt.innerHTML = muted
+        ? '<svg class="ui-icon"><use href="#i-note-off"/></svg>'
+        : '<svg class="ui-icon"><use href="#i-note"/></svg>';
+    mt.classList.toggle('muted', muted);
 });
 
 // Start music on first user interaction (browsers block autoplay until a click/touch/keypress).
@@ -568,6 +606,67 @@ function showScreen(screenId) {
     // Switch background music based on screen
     playMusicForScreen(screenId);
 }
+
+// Contextual tutorial overlay — shows a short "how to play" card the first time a
+// new mechanic/mode appears. Each tutorial shows once (persisted in localStorage)
+// and stays open until the player explicitly closes it (the "Понятно" button or a
+// tap on the backdrop), so it can be read at any pace.
+const TUT_ICON_HEART = '<svg class="tut-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 21C12 21 4 14.5 4 9.5C4 6.5 6.5 4 9 4C10.5 4 12 5 12 6.5C12 5 13.5 4 15 4C17.5 4 20 6.5 20 9.5C20 14.5 12 21 12 21Z"/></svg>';
+let _tutorialTimer = null;
+// Registry of every tutorial panel. Centralising the specs lets us re-show a
+// panel on respawn (clearing its "seen" flag first) and wipe all flags on a full
+// restart, so the hints are not a once-per-browser affair.
+const TUTORIALS = {
+    'ch1_jump': { title: 'Как играть — Глава 1', body: 'Нажимай мышью или Пробел, чтобы прыгать. В воздухе нажми ещё раз — двойной прыжок. Собирай кудряшки и мандариновую черноголовку, перепрыгивай всё остальное.', icon: TUT_ICON_HEART },
+    'ch2_etazhi': { title: 'Этажи — платформер', body: 'Двигайся: A/D или ←/→. Прыгай по платформам, перепрыгивай охрану.', icon: TUT_ICON_HEART },
+    'ch2_flappy': { title: 'Москва-Сити — режим Flappy Bird', body: 'Каждое нажатие мыши (или Пробел) — взмах вверх. Лети в просвет между башнями, не врежься!', icon: TUT_ICON_HEART },
+    'ch3_drive': { title: 'За рулём Камри — Глава 3', body: 'Перестраивайся между тремя полосами (можно не включать поворотники): A/D или ←/→. Уворачивайся от знаков, шлагбаумов и полиции. Собирай остальное.', icon: TUT_ICON_HEART }
+};
+function showTutorial(id) {
+    const t = TUTORIALS[id];
+    if (!t) return;
+    try { if (localStorage.getItem('tut_' + id)) return; } catch (e) {}
+    const overlay = document.getElementById('tutorial-overlay');
+    if (!overlay) return;
+    document.getElementById('tutorial-title').textContent = t.title;
+    document.getElementById('tutorial-body').textContent = t.body;
+    document.getElementById('tutorial-icon').innerHTML = t.icon || '';
+    overlay.classList.remove('hidden');
+    overlay.setAttribute('aria-hidden', 'false');
+    try { audioSystem.playSfx('dialog'); } catch (e) {}
+    try { localStorage.setItem('tut_' + id, '1'); } catch (e) {}
+}
+// Re-show a tutorial even if it was already dismissed — used on respawn so the
+// hint for the section the player died in pops up again.
+function reshowTutorial(id) {
+    try { localStorage.removeItem('tut_' + id); } catch (e) {}
+    showTutorial(id);
+}
+// Wipe every "seen" flag so all tutorials fire fresh on a new playthrough
+// (final-screen "Сыграть ещё раз" → chapter select → reload).
+function resetAllTutorials() {
+    try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('tut_') === 0) localStorage.removeItem(k);
+        }
+    } catch (e) {}
+}
+function hideTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.setAttribute('aria-hidden', 'true');
+    }
+    clearTimeout(_tutorialTimer);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const dismiss = () => { hideTutorial(); try { audioSystem.playClick(); } catch (e) {} };
+    const btn = document.getElementById('tutorial-dismiss');
+    if (btn) btn.addEventListener('click', dismiss);
+    const ov = document.getElementById('tutorial-overlay');
+    if (ov) ov.addEventListener('click', (e) => { if (e.target === ov) dismiss(); });
+});
 
 // Start Screen
 function initStartScreen() {
@@ -1138,6 +1237,9 @@ function initChapter1() {
                 return false;
             });
             if (event && !GameState.dialogActive) {
+                // Register a story-event checkpoint so a death after this point
+                // resumes here (right background + model) instead of chapter start.
+                GameState.checkpoint = { chapter: 1, score: event.score };
                 showDialog(event.dialog);
             }
         }
@@ -1368,7 +1470,9 @@ function initChapter1() {
     });
     
     // Touch/Click
-    canvas.addEventListener('click', () => {
+    // Jump on mouse PRESS (mousedown), not release (click) — feels responsive.
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return; // left button only
         if (GameState.currentScreen === 'chapter1-screen') {
             jump();
         }
@@ -1383,7 +1487,54 @@ function initChapter1() {
     
     // Start game
     gameLoop();
-    
+
+    // Controls hint — always shown at the start of section 1 (chapter start).
+    reshowTutorial('ch1_jump');
+
+    // --- Checkpoint / resume system (Chapter 1) ---
+    // Chapter 1 is one continuous runner scored 0→1800 with story events at
+    // 300/600/900/1200/1500 (each swaps the background). A checkpoint is
+    // registered when each event's dialog fires, so a death after that point
+    // resumes AT that event (right background + model) instead of chapter start.
+    GameState.checkpoint = { chapter: 1, score: 0 };
+    // Map a score to its background name (mirrors drawBackground's thresholds).
+    const bgForScore = (s) => s >= 1500 ? 'chapter1_mazapark'
+        : s >= 1200 ? 'chapter1_ice'
+        : s >= 900 ? 'chapter1_grandpa'
+        : s >= 600 ? 'chapter1_quitting'
+        : s >= 300 ? 'chapter1_basement'
+        : 'chapter1_piter';
+    GameState.resumeGame = () => {
+        showScreen('chapter1-screen');
+        GameState.dialogActive = false;
+        // Resume from the last story-event checkpoint (chapter start by default).
+        const cpScore = (GameState.checkpoint && typeof GameState.checkpoint.score === 'number') ? GameState.checkpoint.score : 0;
+        score = cpScore;
+        lives = 5;
+        // Skip dialogs already seen (events whose score is at/below the checkpoint).
+        currentEvent = storyEvents.filter(e => e.score <= cpScore).length;
+        collectibles = [];
+        obstacles = [];
+        player.x = 100;
+        player.y = canvas.height - 300;
+        player.velocityY = 0;
+        player.jumping = false;
+        player.doubleJump = false;
+        player.grounded = true;
+        bgOffset = 0;
+        // Restore the background for the checkpoint score so the event dialog
+        // doesn't re-trigger, and the curly model only if past the Mazapark event.
+        currentBackground = bgForScore(cpScore);
+        GameState.playerTransformed = (cpScore >= 1500);
+        document.getElementById('chapter1-score').textContent = score;
+        document.getElementById('chapter1-lives').textContent = lives;
+        GameState.chapter1Running = true;
+        // Re-show the controls hint only when respawning in section 1
+        // (checkpoint score 0). Past section 1 the player already knows the ropes.
+        if (cpScore === 0) reshowTutorial('ch1_jump');
+        gameLoop();
+    };
+
     // Chapter complete button
     document.getElementById('chapter2-btn').addEventListener('click', () => {
         audioSystem.playClick();
@@ -1905,6 +2056,12 @@ function initChapter2() {
                     if (currentSection === 3) {
                         moscowStartScore = score; // capture entry score for the Moscow sub-checkpoint
                     }
+                    // Register a checkpoint at the start of the newly-entered segment
+                    // so a later death resumes here instead of the chapter beginning.
+                    GameState.checkpoint = { chapter: 2, section: currentSection };
+                    if (currentSection === 3) {
+                        reshowTutorial('ch2_flappy');
+                    }
                 }
                 break;
             }
@@ -2221,6 +2378,8 @@ function initChapter2() {
                 // Teleport to next section when taxi goes off screen
                 if (taxi.x > canvas.width + 200) {
                     currentSection = 1;
+                    GameState.checkpoint = { chapter: 2, section: 1 };
+                    reshowTutorial('ch2_etazhi');
                     audioSystem.playSfx('whoosh');
                     gravityInverted = sections[1].gravity;
                     player.x = 100;
@@ -2264,10 +2423,12 @@ function initChapter2() {
             player.velocityY -= gravity;
             player.y += player.velocityY;
             
-            // Ceiling collision
+            // Ceiling collision (landing in the inverted-gravity section)
             if (player.y <= ceilingY) {
+                const wasAirborne = !player.grounded;
                 player.y = ceilingY;
                 player.velocityY = 0;
+                if (wasAirborne) audioSystem.playSfx('land', { volume: 0.6 });
                 player.grounded = true;
                 player.jumping = false;
                 player.doubleJump = false;
@@ -2278,8 +2439,10 @@ function initChapter2() {
             
             // Ground collision
             if (player.y >= groundY - player.height) {
+                const wasAirborne = !player.grounded;
                 player.y = groundY - player.height;
                 player.velocityY = 0;
+                if (wasAirborne) audioSystem.playSfx('land', { volume: 0.6 });
                 player.grounded = true;
                 player.jumping = false;
                 player.doubleJump = false;
@@ -2298,8 +2461,10 @@ function initChapter2() {
                     player.y + player.height > p.y &&
                     player.y + player.height < p.y + p.height + 20 &&
                     player.velocityY > 0) {
+                    const wasAirborne = !player.grounded;
                     player.y = p.y - player.height;
                     player.velocityY = 0;
+                    if (wasAirborne) audioSystem.playSfx('land', { volume: 0.6 });
                     player.grounded = true;
                     player.jumping = false;
                     player.doubleJump = false;
@@ -2461,6 +2626,7 @@ function initChapter2() {
                     ], () => {
                         // After dialog, transition to section 3
                         currentSection = 2;
+                        GameState.checkpoint = { chapter: 2, section: 2 };
                         audioSystem.playSfx('whoosh');
                         gravityInverted = sections[2].gravity;
                         player.x = 100;
@@ -2477,9 +2643,7 @@ function initChapter2() {
         }
         
         // Collision detection - obstacles
-        let moscowDeath = false;
         obstacles = obstacles.filter(o => {
-            if (moscowDeath) return false; // clear remaining towers on Moscow respawn
             if (player.x < o.x + o.width &&
                 player.x + player.width > o.x &&
                 player.y < o.y + o.height &&
@@ -2489,21 +2653,16 @@ function initChapter2() {
                     audioSystem.playHit();
                     document.getElementById('chapter2-lives').textContent = lives;
                     if (lives <= 0) {
-                        if (currentSection === 3) {
-                            moscowDeath = true; // sub-checkpoint: respawn at Moscow start instead of restarting the whole chapter
-                        } else {
-                            GameState.chapter2Running = false;
-                            showScreen('game-over-screen');
-                        }
+                        // Death → game-over screen. "Try again" resumes at the last
+                        // segment checkpoint (GameState.resumeGame), not the menu.
+                        GameState.chapter2Running = false;
+                        showScreen('game-over-screen');
                     }
                 }
                 return false;
             }
             return true;
         });
-        if (moscowDeath) {
-            respawnMoscow();
-        }
         
         // Check chapter completion (Moscow section shortened: ~30 forgiving towers instead of ~60)
         if (score >= 2100) {
@@ -2602,7 +2761,10 @@ function initChapter2() {
     });
     
     // Touch/Click
-    canvas.addEventListener('click', () => {
+    // Jump/flap on mouse PRESS (mousedown), not release (click) — feels
+    // responsive for both the etazhi platformer and the Moscow flappy section.
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return; // left button only
         if (GameState.currentScreen === 'chapter2-screen') {
             jump();
         }
@@ -2617,7 +2779,86 @@ function initChapter2() {
     
     // Start game
     gameLoop();
-    
+
+    // --- Checkpoint / resume system (Chapter 2) ---
+    // Chapter 2 has 4 segments (Маяк / Этажи / День Рождения / Москва-Сити).
+    // Each segment registers a checkpoint when entered; on death → game-over →
+    // "retry", respawnAtSection() restarts the current segment in place (no
+    // reload/menu/splash), with full lives and the segment's start score, so
+    // progress from earlier segments is preserved.
+    GameState.checkpoint = { chapter: 2, section: 0 };
+    GameState.resumeGame = () => {
+        showScreen('chapter2-screen');
+        GameState.dialogActive = false;
+        respawnAtSection(GameState.checkpoint ? GameState.checkpoint.section : 0);
+        GameState.chapter2Running = true;
+        gameLoop();
+    };
+
+    // Respawn at the start of segment n: full lives, segment start score, cleared
+    // entities, brief invincibility. Story intro dialogs are suppressed on respawn
+    // so the player isn't forced to re-watch them after every death.
+    function respawnAtSection(n) {
+        audioSystem.playSfx('respawn');
+        currentSection = n;
+        gravityInverted = sections[n].gravity;
+        lives = 5;
+        let startScore;
+        if (n === 0) startScore = 0;
+        else if (n === 3) startScore = moscowStartScore;
+        else startScore = sections[n - 1].endScore;
+        score = startScore;
+        collectibles = [];
+        obstacles = [];
+        platforms = [];
+        kristinaOnPlatform = null;
+        player.x = 100;
+        player.velocityX = 0;
+        player.velocityY = 0;
+        player.jumping = false;
+        player.doubleJump = false;
+        player.invincible = true;
+        player.visible = true;
+        if (n === 3) {
+            // Flappy section: start airborne, centred
+            player.y = (canvas.height - player.height) / 2;
+            player.grounded = false;
+        } else {
+            player.y = canvas.height - 300;
+            player.grounded = true;
+        }
+        if (n === 0) {
+            // Reset the taxi so the lighthouse segment replays cleanly
+            taxi.x = canvas.width + 200;
+            taxi.y = groundY - 150;
+            taxi.stopped = false;
+            taxi.boarded = false;
+            taxi.leaving = false;
+            taxi.approaching = false;
+            taxi.speed = 12;
+        }
+        // On respawn, suppress only the story intros for segments already passed
+        // (0..n) so they don't replay — but leave future segments' intros armed
+        // (false) so they still fire the first time the player reaches them. The
+        // cake-face sprite and Kristina state are restored to match segment n.
+        lighthouseIntroShown = (n >= 0);       // segment 0 (Маяк) already seen on any respawn
+        etazhiIntroShown = (n >= 1);
+        birthdayDialogShown = (n >= 2);
+        birthdayDialogPart2Shown = (n >= 2);
+        moscowDialogShown = (n >= 3);
+        cakeFaceActive = (n === 2);            // birthday cake-face sprite only in segment 2
+        forceKristinaOnNextPlatform = false;
+        kristinaDialogShown = (n >= 2);        // Kristina encounter is at the end of segment 1
+        kristinaPlatformSpawned = (n >= 2);
+        document.getElementById('chapter2-lives').textContent = lives;
+        document.getElementById('chapter2-score').textContent = score;
+        // Re-show this segment's tutorial on respawn so the controls hint isn't
+        // a once-only thing — only for segments that actually have one.
+        if (n === 1) reshowTutorial('ch2_etazhi');
+        if (n === 3) reshowTutorial('ch2_flappy');
+        setTimeout(() => { player.invincible = false; }, 1500);
+    }
+
     // Chapter complete button
     document.getElementById('chapter3-btn').addEventListener('click', () => {
         audioSystem.playClick();
@@ -3013,6 +3254,9 @@ function initChapter3() {
                 showDialog(storyEvents[i].dialog);
                 if (storyEvents[i].special) {
                     policeActive = true;
+                    // Story-event checkpoint: a death after the police event
+                    // resumes mid-chase instead of at the chapter start.
+                    GameState.checkpoint = { chapter: 3, score: storyEvents[i].score };
                 }
                 break;
             }
@@ -3353,6 +3597,10 @@ function initChapter3() {
                 fadeAlpha = 0;
                 cutsceneActive = false;
                 cutsceneCompleted = true;
+                // Section 3 (1200–1800) checkpoint: a death after the final-wave
+                // cutscene resumes here — past the chase and the cutscene — instead
+                // of back at the 600 police-event checkpoint.
+                GameState.checkpoint = { chapter: 3, score: score };
                 // Trigger dialog for section 3 (manually, not via checkStoryEvents)
                 showDialog(storyEvents[2].dialog);
             }
@@ -3447,14 +3695,21 @@ function initChapter3() {
                     endingPhase = 4;
                     endingStartTime = Date.now();
                     flashActive = false;
+                    // Flash done → reveal the big printed polaroid (photo_camry)
+                    // on a dark backdrop while the shutter/eject sound finishes.
+                    const ep = document.getElementById('ending-polaroid');
+                    if (ep) ep.classList.add('visible');
                 }
             } else if (endingPhase === 4) {
-                // Phase 4: Fade to final screen
-                const fadeDuration = 1000;
+                // Phase 4: Big polaroid photo (photo_camry) on a dark backdrop
+                // while the printing sound finishes, then → congratulations screen.
+                const fadeDuration = 3500;
                 fadeAlpha = Math.min(elapsed / fadeDuration, 1);
                 
                 if (elapsed >= fadeDuration) {
                     GameState.chapter3Running = false;
+                    const ep = document.getElementById('ending-polaroid');
+                    if (ep) ep.classList.remove('visible');
                     showScreen('final-screen');
                     initFinalScreen();
                 }
@@ -3539,79 +3794,152 @@ function initChapter3() {
         }
     }
     
-    // Draw wedding arch
+    // Draw wedding arch — a romantic ЗАГС gate: white pillars, a smooth rounded
+    // arch with a floral garland, a sheer draped curtain, a bow at the apex, and a
+    // "ЗАГС" plaque in the opening. (Replaces the earlier brown-wood + circles.)
     function drawWeddingArch() {
-        const archWidth = 300;
-        const archHeight = 350;
-        
-        // Draw arch structure
-        ctx.fillStyle = '#8B4513'; // Brown wood
-        ctx.fillRect(archX - 10, archY, 20, archHeight); // Left pillar
-        ctx.fillRect(archX + archWidth - 10, archY, 20, archHeight); // Right pillar
-        
-        // Draw arch top (curved)
+        const archWidth = 300, archHeight = 350, pillarW = 24;
+        const leftX = archX, rightX = archX + archWidth, topY = archY;
+        const cx = archX + archWidth / 2, apexY = topY - archWidth * 0.42;
+        // rounded-rectangle helper
+        const rr = (x, y, w, h, r) => {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        };
+        // 5-petal flower helper
+        const flower = (x, y, r, petal, center) => {
+            ctx.fillStyle = petal;
+            for (let i = 0; i < 5; i++) {
+                const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                ctx.beginPath();
+                ctx.arc(x + Math.cos(a) * r * 0.62, y + Math.sin(a) * r * 0.62, r * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.34, 0, Math.PI * 2);
+            ctx.fillStyle = center;
+            ctx.fill();
+        };
+        // point along the arch-top bezier curve
+        const archPoint = (t) => {
+            const p0x = leftX + pillarW / 2, p0y = topY + 4;
+            const p1x = leftX + pillarW / 2, p1y = apexY;
+            const p2x = rightX - pillarW / 2, p2y = apexY;
+            const p3x = rightX - pillarW / 2, p3y = topY + 4;
+            const mt = 1 - t;
+            return { x: mt*mt*mt*p0x + 3*mt*mt*t*p1x + 3*mt*t*t*p2x + t*t*t*p3x,
+                     y: mt*mt*mt*p0y + 3*mt*mt*t*p1y + 3*mt*t*t*p2y + t*t*t*p3y };
+        };
+
+        // Pillars (soft white with rosy caps)
+        const pillarGrad = ctx.createLinearGradient(0, topY, 0, topY + archHeight);
+        pillarGrad.addColorStop(0, '#FFFDF8');
+        pillarGrad.addColorStop(0.55, '#FFFFFF');
+        pillarGrad.addColorStop(1, '#EFE3D8');
+        ctx.fillStyle = pillarGrad;
+        rr(leftX, topY, pillarW, archHeight, 10); ctx.fill();
+        rr(rightX - pillarW, topY, pillarW, archHeight, 10); ctx.fill();
+        ctx.fillStyle = '#F4DCD2';
+        rr(leftX - 5, topY, pillarW + 10, 16, 7); ctx.fill();
+        rr(rightX - pillarW - 5, topY, pillarW + 10, 16, 7); ctx.fill();
+
+        // Arch top: smooth rounded curve (same fabric as the pillars)
         ctx.beginPath();
-        ctx.arc(archX + archWidth / 2, archY, archWidth / 2 + 10, Math.PI, 0);
-        ctx.lineWidth = 20;
-        ctx.strokeStyle = '#8B4513';
+        ctx.moveTo(leftX + pillarW / 2, topY + 4);
+        ctx.bezierCurveTo(leftX + pillarW / 2, apexY, rightX - pillarW / 2, apexY, rightX - pillarW / 2, topY + 4);
+        ctx.lineWidth = pillarW;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = pillarGrad;
         ctx.stroke();
-        
-        // Draw flowers on arch
-        const flowerColors = ['#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB', '#FF6347'];
-        for (let i = 0; i < 20; i++) {
-            const angle = Math.PI + (i / 19) * Math.PI;
-            const radius = archWidth / 2;
-            const flowerX = archX + archWidth / 2 + Math.cos(angle) * radius;
-            const flowerY = archY + Math.sin(angle) * radius * 0.5;
-            
+
+        // Sheer draped curtain inside the arch
+        const drapeGrad = ctx.createLinearGradient(0, topY, 0, topY + 150);
+        drapeGrad.addColorStop(0, 'rgba(255,255,255,0.6)');
+        drapeGrad.addColorStop(1, 'rgba(255,235,240,0.05)');
+        ctx.fillStyle = drapeGrad;
+        ctx.beginPath();
+        ctx.moveTo(leftX + pillarW, topY);
+        ctx.quadraticCurveTo(cx - 55, topY + 60, cx - 28, topY + 120);
+        ctx.quadraticCurveTo(cx, topY + 95, cx + 28, topY + 120);
+        ctx.quadraticCurveTo(cx + 55, topY + 60, rightX - pillarW, topY);
+        ctx.closePath();
+        ctx.fill();
+
+        // Floral garland + leaves + glow dots along the arch curve
+        const flowerColors = ['#FF8FB1', '#FF6F9C', '#FFC4D6', '#FFD3E0', '#FF9EB5'];
+        const segs = 11;
+        for (let i = 0; i <= segs; i++) {
+            const t = i / segs, p = archPoint(t);
+            ctx.fillStyle = 'rgba(120,170,90,0.7)';
             ctx.beginPath();
-            ctx.arc(flowerX, flowerY, 8, 0, Math.PI * 2);
-            ctx.fillStyle = flowerColors[i % flowerColors.length];
+            ctx.ellipse(p.x, p.y + 2, 7, 3.5, t * Math.PI, 0, Math.PI * 2);
             ctx.fill();
+            flower(p.x, p.y, 11, flowerColors[i % flowerColors.length], '#FFD24A');
+            ctx.save();
+            ctx.shadowColor = 'rgba(255,225,150,0.9)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#FFF1B8';
+            ctx.beginPath();
+            ctx.arc(p.x + 6, p.y - 6, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
         }
         
-        // Draw garland lights
-        ctx.fillStyle = '#FFD700';
-        for (let i = 0; i < 15; i++) {
-            const x = archX + (i / 14) * archWidth;
-            const y = archY + 30 + Math.sin(i * 0.5) * 20;
-            
-            ctx.beginPath();
-            ctx.arc(x, y, 5, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Draw balloons
-        const balloonColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
-        for (let i = 0; i < 8; i++) {
-            const balloonX = archX - 30 + i * 45;
-            const balloonY = archY - 50 - Math.sin(i * 0.8) * 30;
-            
-            ctx.beginPath();
-            ctx.arc(balloonX, balloonY, 15, 0, Math.PI * 2);
-            ctx.fillStyle = balloonColors[i % balloonColors.length];
-            ctx.fill();
-            
-            // Balloon string
-            ctx.beginPath();
-            ctx.moveTo(balloonX, balloonY + 15);
-            ctx.lineTo(balloonX, balloonY + 50);
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-        }
-        
-        // Draw ЗАГС text
-        ctx.fillStyle = '#FF1493';
-        ctx.font = 'bold 48px Arial';
+        // Bow at the apex
+        const bowY = apexY - 4;
+        ctx.fillStyle = '#FF6F9C';
+        ctx.beginPath();
+        ctx.moveTo(cx, bowY);
+        ctx.quadraticCurveTo(cx - 34, bowY - 22, cx - 30, bowY + 8);
+        ctx.quadraticCurveTo(cx - 18, bowY + 2, cx, bowY + 6);
+        ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx, bowY);
+        ctx.quadraticCurveTo(cx + 34, bowY - 22, cx + 30, bowY + 8);
+        ctx.quadraticCurveTo(cx + 18, bowY + 2, cx, bowY + 6);
+        ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, bowY + 4, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#FF5A86';
+        ctx.fill();
+        ctx.strokeStyle = '#FF6F9C';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cx - 4, bowY + 9);
+        ctx.quadraticCurveTo(cx - 22, bowY + 30, cx - 16, bowY + 44);
+        ctx.moveTo(cx + 4, bowY + 9);
+        ctx.quadraticCurveTo(cx + 22, bowY + 30, cx + 16, bowY + 44);
+        ctx.stroke();
+
+        // "ЗАГС" plaque (centered in the arch opening)
+        ctx.save();
+        ctx.font = 'bold 38px Georgia, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('ЗАГС', archX + archWidth / 2, archY - 80);
-        
-        // Add decorative ribbon
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(archX + archWidth / 2 - 80, archY - 60, 160, 5);
-        ctx.fillRect(archX + archWidth / 2 - 80, archY - 60, 5, 20);
-        ctx.fillRect(archX + archWidth / 2 + 75, archY - 60, 5, 20);
+        ctx.textBaseline = 'middle';
+        const label = 'ЗАГС';
+        const lw = ctx.measureText(label).width + 44;
+        const lh = 48, lx = cx - lw / 2, ly = topY + 24;
+        rr(lx, ly, lw, lh, 24);
+        const plaqueGrad = ctx.createLinearGradient(0, ly, 0, ly + lh);
+        plaqueGrad.addColorStop(0, '#FFFFFF');
+        plaqueGrad.addColorStop(1, '#FFE4EC');
+        ctx.fillStyle = plaqueGrad;
+        ctx.shadowColor = 'rgba(219,112,147,0.35)';
+        ctx.shadowBlur = 14;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#FF8FB1';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#DB7093';
+        ctx.fillText(label, cx, ly + lh / 2 + 2);
+        ctx.restore();
     }
     
     // Game loop
@@ -3676,7 +4004,86 @@ function initChapter3() {
     canvas.addEventListener('mousemove', (e) => {
         // Mouse control disabled for lane system
     });
-    
+
+    // --- Checkpoint / resume system (Chapter 3) ---
+    // Chapter 3 is one continuous drive with a story event at score 600 (the
+    // police chase). On death → game-over → "retry", resumeGame() restarts from
+    // the last story-event checkpoint (chapter start, or mid-chase past 600).
+    GameState.checkpoint = { chapter: 3, score: 0 };
+    GameState.resumeGame = () => {
+        showScreen('chapter3-screen');
+        GameState.dialogActive = false;
+        // Resume from the last story-event checkpoint (chapter start by default).
+        const cpScore = (GameState.checkpoint && typeof GameState.checkpoint.score === 'number') ? GameState.checkpoint.score : 0;
+        score = cpScore;
+        lives = 5;
+        // Restore the right section's dialog/chase/cutscene state:
+        //   section 1 (0–600):    fresh drive, opening intro already seen
+        //   section 2 (600–1200): mid police-chase (event at 600 seen)
+        //   section 3 (1200–1800): past the final-wave cutscene (all dialogs seen)
+        if (cpScore >= 1200) {
+            currentEvent = 2;
+            policeActive = false;
+            finalPoliceWaveTriggered = true;   // final-wave cutscene already played
+            cutsceneCompleted = true;          // warning sign draws; section-3 dialog seen
+        } else if (cpScore >= 600) {
+            currentEvent = 2;
+            policeActive = true;               // restore the police chase
+            finalPoliceWaveTriggered = false;
+            cutsceneCompleted = false;
+        } else {
+            currentEvent = 1;
+            policeActive = false;
+            finalPoliceWaveTriggered = false;
+            cutsceneCompleted = false;
+        }
+        currentSection = 0;
+        policeWaveActive = false;
+        fadeInProgress = false;
+        fadeOutProgress = false;
+        fadeHoldProgress = false;
+        fadeAlpha = 0;
+        fadeText = '';
+        sirenPlaying = false;
+        cutsceneActive = false;
+        endingActive = false;
+        endingPhase = 0;
+        endingStartTime = 0;
+        archX = 0;
+        archY = -400;
+        charactersVisible = false;
+        playerX = 0;
+        playerY = 0;
+        kristinaX = 0;
+        kristinaY = 0;
+        playerVelocityY = 0;
+        kristinaVelocityY = 0;
+        jumpPhase = 0;
+        flashAlpha = 0;
+        flashActive = false;
+        inputDisabled = false;
+        collectibles = [];
+        obstacles = [];
+        monya = null;
+        roadOffset = 0;
+        currentLane = 1;
+        car.x = lanes[currentLane].x + laneWidth / 2 - 120;
+        car.y = canvas.height - 400;
+        car.targetX = car.x;
+        car.speed = 10;
+        document.getElementById('chapter3-lives').textContent = lives;
+        document.getElementById('chapter3-score').textContent = score;
+        GameState.chapter3Running = true;
+        // Re-show the controls hint only when respawning in section 1
+        // (checkpoint score 0, before the police chase). Past section 1 it is
+        // not shown again — the player already saw it.
+        if (cpScore === 0) reshowTutorial('ch3_drive');
+        gameLoop();
+    };
+
+    // Controls hint — always shown at the start of section 1 (chapter start).
+    reshowTutorial('ch3_drive');
+
     // Start game
     gameLoop();
 }
@@ -3688,12 +4095,9 @@ function initFinalScreen() {
     document.getElementById('restart-btn').addEventListener('click', () => {
         audioSystem.playClick();
         musicSystem.stop();
+        // Wipe "seen" flags so every tutorial fires fresh on the next playthrough.
+        resetAllTutorials();
         document.getElementById('chapter-selection').classList.remove('hidden');
-    });
-    
-    document.getElementById('gallery-btn').addEventListener('click', () => {
-        audioSystem.playClick();
-        showScreen('gallery-screen');
     });
     
     document.getElementById('close-gallery-btn').addEventListener('click', () => {
@@ -3722,11 +4126,75 @@ function initFinalScreen() {
 }
 
 function initGameOverScreen() {
-    const particleSystem = new ParticleSystem('game-over-particles');
-    
+    // Particles animate behind the game-over screen. Keep a single instance —
+    // showScreen() calls initGameOverScreen() on every death, so re-creating it
+    // each time would stack rAF loops now that we no longer reload the page.
+    if (!initGameOverScreen._particles) {
+        initGameOverScreen._particles = new ParticleSystem('game-over-particles');
+    }
+
+    // Bind the retry button exactly once. The handler reads GameState.resumeGame,
+    // which each chapter re-assigns when it starts, so one binding serves every
+    // chapter and every segment checkpoint.
+    if (initGameOverScreen._bound) return;
+    initGameOverScreen._bound = true;
     document.getElementById('retry-btn').addEventListener('click', () => {
         audioSystem.playClick();
-        location.reload();
+        // Resume straight from the last checkpoint — no menu, no loading splash,
+        // no intro "плашка". Falls back to a full reload only if no chapter has
+        // registered a resume handler yet.
+        if (GameState.resumeGame) {
+            GameState.resumeGame();
+        } else {
+            location.reload();
+        }
+    });
+}
+
+// Full-screen polaroid photo viewer — click any polaroid photo to zoom it larger,
+// still framed as a polaroid. Delegated: only fires for cards holding a real
+// assets/ui/photo_*.jpg, so the start-screen character card is ignored. Opens the
+// final-screen collage, chapter-complete photos, and the game-over polaroid.
+function setupPhotoViewer() {
+    const viewer = document.getElementById('photo-viewer');
+    if (!viewer) return;
+    const vImg = document.getElementById('photo-viewer-img');
+    const vCap = document.getElementById('photo-viewer-caption');
+
+    function openViewer(card) {
+        const img = card.querySelector('img[src*="assets/ui/photo_"]');
+        if (!img) return;
+        vImg.src = img.currentSrc || img.src;
+        vImg.alt = img.alt || '';
+        vCap.textContent = img.alt || '';
+        vCap.style.display = img.alt ? 'block' : 'none';
+        viewer.classList.remove('hidden');
+        viewer.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        audioSystem.playClick();
+    }
+
+    function closeViewer() {
+        viewer.classList.add('hidden');
+        viewer.setAttribute('aria-hidden', 'true');
+        vImg.src = '';
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!viewer.classList.contains('hidden')) {
+            // Viewer open: close when clicking outside the polaroid card.
+            if (!e.target.closest('.photo-viewer-card')) closeViewer();
+            return;
+        }
+        const card = e.target.closest('.polaroid-card');
+        if (card && card.querySelector('img[src*="assets/ui/photo_"]')) {
+            e.preventDefault();
+            openViewer(card);
+        }
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !viewer.classList.contains('hidden')) closeViewer();
     });
 }
 
@@ -3745,6 +4213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Preload complete. Wire up the start screen (still hidden behind the splash).
     initStartScreen();
+    setupPhotoViewer();   // wire polaroid-photo fullscreen zoom (final collage + chapter-complete)
 
     // Reveal the "tap to start" button. This first tap also unlocks audio (autoplay
     // policy) so menu music («Утро») plays from this point on — before Start.

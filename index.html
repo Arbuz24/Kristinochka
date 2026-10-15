@@ -4,14 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Наш бесконечный маршрут</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
+    <!-- Inline SVG icon sprite — crisp vector icons replace emoji UI glyphs -->
+    <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21C12 21 4 14.5 4 9.5C4 6.5 6.5 4 9 4C10.5 4 12 5 12 6.5C12 5 13.5 4 15 4C17.5 4 20 6.5 20 9.5C20 14.5 12 21 12 21Z"/></symbol>
+      <symbol id="i-heart-broken" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21C12 21 4 14.5 4 9.5C4 6.5 6.5 4 9 4C10.5 4 12 5 12 6.5C12 5 13.5 4 15 4C17.5 4 20 6.5 20 9.5C20 14.5 12 21 12 21Z"/><path d="M12 6.2v3.2l-2 2 2 2v3.4l-2 2.2" fill="none" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="currentColor"/><circle cx="17.5" cy="16" r="2.6" fill="currentColor"/></symbol>
+      <symbol id="i-note-off" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="currentColor"/><circle cx="17.5" cy="16" r="2.6" fill="currentColor"/><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-bug" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9V7a3 3 0 0 1 6 0v2"/><rect x="6" y="9" width="12" height="9" rx="6"/><path d="M3 13h3M18 13h3M3 17h3.5M17.5 17H21M3 9h4M17 9h4"/><path d="M12 9v9"/></g></symbol>
+      <symbol id="i-wave" viewBox="0 0 24 24"><path fill="currentColor" d="M2 12c2 0 2-3 5-3s3 3 5 3 2-3 5-3 3 3 5 3v4c-2 0-2 3-5 3s-3-3-5-3-2 3-5 3-3-3-5-3z"/></symbol>
+      <symbol id="i-car" viewBox="0 0 24 24"><path fill="currentColor" d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M4 11h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v1a1 1 0 0 1-2 0v-1H7v1a1 1 0 0 1-2 0v-1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z"/><circle cx="7.5" cy="14.5" r="1.2" fill="#fff"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path fill="currentColor" d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.74 10h-2.08A6 6 0 1 1 12 6a5.91 5.91 0 0 1 4.22 1.78L13 11h7V4z"/></symbol>
+      <symbol id="i-kitten" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 6.5A6.5 6.5 0 1 0 12 19.5A6.5 6.5 0 1 0 12 6.5ZM9.7 10.9A1.1 1.1 0 1 0 9.7 13.1A1.1 1.1 0 1 0 9.7 10.9ZM14.3 10.9A1.1 1.1 0 1 0 14.3 13.1A1.1 1.1 0 1 0 14.3 10.9ZM11.2 14.8L12.8 14.8L12 16ZM10.6 16.6Q12 18 13.4 16.6Q12 16.8 10.6 16.6Z"/><path fill="currentColor" fill-rule="evenodd" d="M4.5 9L7 2.5L9.5 8ZM5.5 8L7 4.1L8.5 7.4Z"/><path fill="currentColor" fill-rule="evenodd" d="M19.5 9L17 2.5L14.5 8ZM18.5 8L17 4.1L15.5 7.4Z"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M6.5 12.6L2.9 11.6M6.3 13.7L2.7 13.6M6.5 14.8L2.9 15.6M17.5 12.6L21.1 11.6M17.7 13.7L21.3 13.6M17.5 14.8L21.1 15.6"/></symbol>
+      <symbol id="i-arrow-forward" viewBox="0 0 24 24"><path d="M4 12h12M11 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    </svg>
     <div id="game-container">
         <!-- Loading / Audio-Unlock Splash — shown until all assets preload + user taps to enter -->
         <div id="loading-screen" class="loading-screen">
             <div class="loading-content">
-                <div class="loading-heart">💖</div>
+                <div class="loading-heart"><svg class="ui-icon"><use href="#i-heart"/></svg></div>
                 <h2 class="loading-title" id="loading-title">Загрузка…</h2>
                 <div class="loading-bar-container">
                     <div class="loading-bar" id="loading-bar"></div>
@@ -19,11 +33,11 @@
                 <button id="enter-btn" class="loading-cta" type="button">Нажми, чтобы начать</button>
             </div>
         </div>
-        <button id="music-toggle" class="music-toggle" title="Включить/выключить музыку">🎵</button>
+        <button id="music-toggle" class="music-toggle" title="Включить/выключить музыку"><svg class="ui-icon"><use href="#i-note"/></svg></button>
         <!-- Start Screen -->
         <div id="start-screen" class="screen">
             <div class="particles-container" id="start-particles"></div>
-            <h1 class="game-title">Вот ты и попалась, я заразил твой компьютер тысячей троянов, единственный способ избавиться от них, это пройти эту игру 😈</h1>
+            <h1 class="game-title">Вот ты и попалась, я заразил твой компьютер тысячей троянов, единственный способ избавиться от них, это пройти эту игру <svg class="ui-icon"><use href="#i-kitten"/></svg></h1>
             <div class="polaroid-card">
                 <div class="polaroid-photo" style="display:flex; gap:10px; justify-content:center; align-items:center;">
                     <img src="assets/characters/kristina.png" alt="Кристина" style="width:45%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
@@ -33,7 +47,7 @@
                 </div>
             </div>
             <p class="game-subtitle">Это интерактивная хроника того, как мы глупенько дурачились, любили и поддерживали друг друга, и это то, какой ты запомнилась мне, готова вспомнить всё что было?</p>
-            <button id="start-btn" class="start-button">это типо кнопочка старт 😈</button>
+            <button id="start-btn" class="start-button">это типо кнопочка старт <svg class="ui-icon"><use href="#i-kitten"/></svg></button>
         </div>
 
         <!-- Intro Screen -->
@@ -48,7 +62,7 @@
             <canvas id="chapter1-canvas"></canvas>
             <div class="game-ui">
                 <div class="score-display">Очки: <span id="chapter1-score">0</span></div>
-                <div class="lives-display">❤️ <span id="chapter1-lives">5</span></div>
+                <div class="lives-display"><svg class="ui-icon"><use href="#i-heart"/></svg> <span id="chapter1-lives">5</span></div>
             </div>
             <div id="chapter1-dialog" class="dialog-box hidden"></div>
         </div>
@@ -57,12 +71,12 @@
         <div id="chapter1-complete" class="screen hidden">
             <div class="polaroid-card complete-card">
                 <div class="polaroid-photo">
-                    <img src="assets/ui/photo_mazapark.png" alt="Мазапарк с кудрями" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <img src="assets/ui/photo_mazapark.jpg" alt="Одна из самых спонтанных ночей в моей жизни, но главное что в ней была ты" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                     <div class="placeholder-photo" style="display:none">📸 Фото с катка или Мазапарка</div>
                 </div>
                 <p class="polaroid-caption">Глава 1 пройдена! Ты показала мне что создать уют можно даже там где казалось бы только умирать и остаётся, ты помогла мне бросить кумарить и дала понять что такое одеваться стильно, и я безумно благодарен тебе. Но впереди нас ждало только больше...</p>
             </div>
-            <button id="chapter2-btn" class="next-button">ЕБАШИТЬ ДАЛЬШЕ 🌊</button>
+            <button id="chapter2-btn" class="next-button">ЕБАШИТЬ ДАЛЬШЕ <svg class="ui-icon"><use href="#i-arrow-forward"/></svg></button>
         </div>
 
         <!-- Chapter 2 Screen -->
@@ -70,7 +84,7 @@
             <canvas id="chapter2-canvas"></canvas>
             <div class="game-ui">
                 <div class="score-display">Очки: <span id="chapter2-score">0</span></div>
-                <div class="lives-display">❤️ <span id="chapter2-lives">5</span></div>
+                <div class="lives-display"><svg class="ui-icon"><use href="#i-heart"/></svg> <span id="chapter2-lives">5</span></div>
             </div>
             <div id="chapter2-dialog" class="dialog-box hidden"></div>
         </div>
@@ -79,12 +93,12 @@
         <div id="chapter2-complete" class="screen hidden">
             <div class="polaroid-card complete-card">
                 <div class="polaroid-photo">
-                    <img src="assets/ui/photo_moscow.png" alt="Счастливые в Москве" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <img src="assets/ui/photo_moscow.jpg" alt="Слова будут лишними, но лишь с тобой я был счастлив от начала и до конца" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                     <div class="placeholder-photo" style="display:none">📸 Фото из Москвы или у Маяка</div>
                 </div>
                 <p class="polaroid-caption">Глава 2 пройдена! Мы научились находить потерянные телефоны, прощать глупости, устраивать лучшие сюрпризы и плакать от красоты Москва-Сити. Но впереди, самый экстремальный этап. Время сесть за руль 💀</p>
             </div>
-            <button id="chapter3-btn" class="next-button">СДАТЬ НА ПРАВА И ПОЕХАТЬ! 🚗</button>
+            <button id="chapter3-btn" class="next-button">СДАТЬ НА ПРАВА И ПОЕХАТЬ! <svg class="ui-icon"><use href="#i-car"/></svg></button>
         </div>
 
         <!-- Chapter 3 Screen -->
@@ -92,7 +106,7 @@
             <canvas id="chapter3-canvas"></canvas>
             <div class="game-ui">
                 <div class="score-display">Очки: <span id="chapter3-score">0</span></div>
-                <div class="lives-display">❤️ <span id="chapter3-lives">5</span></div>
+                <div class="lives-display"><svg class="ui-icon"><use href="#i-heart"/></svg> <span id="chapter3-lives">5</span></div>
             </div>
             <div id="chapter3-dialog" class="dialog-box hidden"></div>
         </div>
@@ -101,7 +115,7 @@
         <div id="final-screen" class="screen hidden">
             <div class="particles-container" id="final-particles"></div>
             <div class="birthday-message">
-                <h1>🎉 С Днём Рождения, Кристиночка! 🎉</h1>
+                <h1>🎆🎆🎆<br>С Днём Рождения, Кристиночка!</h1>
                 <p>Ты прошла этот праздничный маршрут, как проходишь со мной через все жизненные приключения, с улыбкой, невероятным мужеством, заботой и любовью.</p>
                 <p>Мы выкидывали подвал из подвала, бросали курить, убирали квартиры дедов, мчались за телефоном на такси на заснеженном маяке, обкрадывали Этажи, отбивались от ДПС на угнанной Камри и помогали друг другу в самых сложных ситуациях.</p>
                 <p>Каждый такой момент, моё самое дорогое сокровище. Спасибо тебе за твой характер, за твою глупенькость, за твою бесконечную поддержку и за то, что ты есть в моей жизни. И помни, куда бы мы ни бежали, главное, что мы бежим вместе ❤️</p>
@@ -110,44 +124,43 @@
             <div class="pinterest-collage">
                 <div class="collage-photo polaroid-card">
                     <div class="polaroid-photo">
-                        <img src="assets/ui/photo_basement.png" alt="Подвал у Паши" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <img src="assets/ui/photo_basement.jpg" alt="Тут ты впервые положила свою голову мне на плечо, тот момент я хорошо запомнил" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <div class="placeholder-photo" style="display:none">🏠 Подвал у Паши</div>
                     </div>
                 </div>
                 <div class="collage-photo polaroid-card">
                     <div class="polaroid-photo">
-                        <img src="assets/ui/photo_skating.png" alt="Кристина на катке" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <img src="assets/ui/photo_skating.jpg" alt="Спасибо Стасу за такую миленьку фоточку, твой увлечённый взгляд тут греет мне душу" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <div class="placeholder-photo" style="display:none">⛸️ Кристина на катке</div>
                     </div>
                 </div>
                 <div class="collage-photo polaroid-card">
                     <div class="polaroid-photo">
-                        <img src="assets/ui/photo_mazapark.png" alt="Мазапарк с кудрями" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <img src="assets/ui/photo_mazapark.jpg" alt="Одна из самых спонтанных ночей в моей жизни, но главное что в ней была ты" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <div class="placeholder-photo" style="display:none">💇 Мазапарк с кудрями</div>
                     </div>
                 </div>
                 <div class="collage-photo polaroid-card">
                     <div class="polaroid-photo">
-                        <img src="assets/ui/photo_lighthouse.png" alt="Шепелевский маяк" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <img src="assets/ui/photo_lighthouse.jpg" alt="Если я буду Уиллем Дефо, будешь моим Робертом Паттинсоном?" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <div class="placeholder-photo" style="display:none">🗼 Шепелевский маяк</div>
                     </div>
                 </div>
                 <div class="collage-photo polaroid-card">
                     <div class="polaroid-photo">
-                        <img src="assets/ui/photo_moscow.png" alt="Счастливые в Москве" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <img src="assets/ui/photo_moscow.jpg" alt="Слова будут лишними, но лишь с тобой я был счастлив от начала и до конца" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <div class="placeholder-photo" style="display:none">🏙️ Счастливые в Москве</div>
                     </div>
                 </div>
                 <div class="collage-photo polaroid-card">
                     <div class="polaroid-photo">
-                        <img src="assets/ui/photo_camry.png" alt="Дедовская Камри" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <img src="assets/ui/photo_camry.jpg" alt="Многое бы отдал за то чтобы вновь подарить тебе колечко и сделать предложение" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                         <div class="placeholder-photo" style="display:none">🚗 Дедовская Камри</div>
                     </div>
                 </div>
             </div>
             <div class="final-buttons">
-                <button id="restart-btn" class="final-button">🔄 Сыграть ещё раз</button>
-                <button id="gallery-btn" class="final-button">📸 Наша галерея</button>
+                <button id="restart-btn" class="final-button">Сыграть ещё раз <svg class="ui-icon"><use href="#i-refresh"/></svg></button>
             </div>
             <div id="chapter-selection" class="chapter-selection hidden">
                 <h2>Выбери главу для начала:</h2>
@@ -157,6 +170,7 @@
                     <button id="chapter3-select" class="chapter-select-button">Глава 3: Камри</button>
                 </div>
             </div>
+            <p class="handwritten-signature">P.S. Навсегда твой, и только твой, Арсений (я уже заждался тебя у тебя во дворе)</p>
         </div>
 
         <!-- Gallery Screen -->
@@ -165,7 +179,7 @@
                 <div class="gallery-slide">
                     <div class="polaroid-card">
                         <div class="polaroid-photo">
-                            <img src="assets/ui/photo_basement.png" alt="Подвал у Паши" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <img src="assets/ui/photo_basement.jpg" alt="Тут ты впервые положила свою голову мне на плечо, тот момент я хорошо запомнил" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                             <div class="placeholder-photo" style="display:none">🏠 Подвал у Паши</div>
                         </div>
                     </div>
@@ -173,7 +187,7 @@
                 <div class="gallery-slide">
                     <div class="polaroid-card">
                         <div class="polaroid-photo">
-                            <img src="assets/ui/photo_skating.png" alt="Кристина на катке" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <img src="assets/ui/photo_skating.jpg" alt="Спасибо Стасу за такую миленьку фоточку, твой увлечённый взгляд тут греет мне душу" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                             <div class="placeholder-photo" style="display:none">⛸️ Кристина на катке</div>
                         </div>
                     </div>
@@ -181,7 +195,7 @@
                 <div class="gallery-slide">
                     <div class="polaroid-card">
                         <div class="polaroid-photo">
-                            <img src="assets/ui/photo_mazapark.png" alt="Мазапарк с кудрями" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <img src="assets/ui/photo_mazapark.jpg" alt="Одна из самых спонтанных ночей в моей жизни, но главное что в ней была ты" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                             <div class="placeholder-photo" style="display:none">💇 Мазапарк с кудрями</div>
                         </div>
                     </div>
@@ -189,7 +203,7 @@
                 <div class="gallery-slide">
                     <div class="polaroid-card">
                         <div class="polaroid-photo">
-                            <img src="assets/ui/photo_lighthouse.png" alt="Шепелевский маяк" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <img src="assets/ui/photo_lighthouse.jpg" alt="Если я буду Уиллем Дефо, будешь моим Робертом Паттинсоном?" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                             <div class="placeholder-photo" style="display:none">🗼 Шепелевский маяк</div>
                         </div>
                     </div>
@@ -197,7 +211,7 @@
                 <div class="gallery-slide">
                     <div class="polaroid-card">
                         <div class="polaroid-photo">
-                            <img src="assets/ui/photo_moscow.png" alt="Счастливые в Москве" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <img src="assets/ui/photo_moscow.jpg" alt="Слова будут лишними, но лишь с тобой я был счастлив от начала и до конца" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                             <div class="placeholder-photo" style="display:none">🏙️ Счастливые в Москве</div>
                         </div>
                     </div>
@@ -205,13 +219,13 @@
                 <div class="gallery-slide">
                     <div class="polaroid-card">
                         <div class="polaroid-photo">
-                            <img src="assets/ui/photo_camry.png" alt="Дедовская Камри" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <img src="assets/ui/photo_camry.jpg" alt="Многое бы отдал за то чтобы вновь подарить тебе колечко и сделать предложение" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                             <div class="placeholder-photo" style="display:none">🚗 Дедовская Камри</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <button id="close-gallery-btn" class="close-button">✕ Закрыть</button>
+            <button id="close-gallery-btn" class="close-button"><svg class="ui-icon"><use href="#i-x"/></svg> Закрыть</button>
         </div>
 
         <!-- Game Over Screen -->
@@ -219,14 +233,46 @@
             <div class="particles-container" id="game-over-particles"></div>
             <div class="polaroid-card complete-card">
                 <div class="polaroid-photo">
-                    <div class="placeholder-photo">💔</div>
+                    <img src="assets/ui/photo_game_over.jpg" alt="Даже когда ты падаешь — я рядом. Вставай, мы ещё не добежали до ЗАГСа ❤️" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div class="placeholder-photo" style="display:none"><svg class="ui-icon"><use href="#i-heart-broken"/></svg></div>
                 </div>
                 <p class="polaroid-caption">Ой, что-то пошло не так... Но в жизни так бывает, не правда ли? Главное, что мы всегда поднимаемся и продолжаем идти вместе. Попробуй ещё раз, я знаю, что ты справишься! ❤️</p>
             </div>
-            <button id="retry-btn" class="next-button">Попробовать ещё раз 🔄</button>
+            <button id="retry-btn" class="next-button">Попробовать ещё раз <svg class="ui-icon"><use href="#i-refresh"/></svg></button>
+        </div>
+
+        <!-- Big polaroid photo shown right after the ЗАГС flash, while the
+             photo-printing sound plays, before the congratulations screen. -->
+        <div id="ending-polaroid" aria-hidden="true">
+            <div class="ending-polaroid-card polaroid-card">
+                <div class="polaroid-photo">
+                    <img src="assets/ui/photo_camry.jpg" alt="Многое бы отдал за то чтобы вновь подарить тебе колечко и сделать предложение">
+                </div>
+                <p class="polaroid-caption">Многое бы отдал за то чтобы вновь подарить тебе колечко и сделать предложение</p>
+            </div>
+        </div>
+
+        <!-- Full-screen polaroid photo viewer (click any polaroid photo to zoom) -->
+        <div id="photo-viewer" class="photo-viewer hidden" aria-hidden="true">
+            <div class="photo-viewer-card polaroid-card">
+                <div class="polaroid-photo">
+                    <img id="photo-viewer-img" alt="">
+                </div>
+                <p class="polaroid-caption" id="photo-viewer-caption"></p>
+            </div>
+            <button class="photo-viewer-close" type="button" aria-label="Закрыть"><svg class="ui-icon"><use href="#i-x"/></svg></button>
+        </div>
+        <!-- Contextual tutorial overlay — appears once per new mechanic/mode -->
+        <div id="tutorial-overlay" class="tutorial-overlay hidden" aria-hidden="true">
+            <div class="tutorial-card">
+                <div class="tutorial-icon" id="tutorial-icon"></div>
+                <h3 class="tutorial-title" id="tutorial-title"></h3>
+                <p class="tutorial-body" id="tutorial-body"></p>
+                <button class="tutorial-dismiss" id="tutorial-dismiss" type="button">Понятно</button>
+            </div>
         </div>
     </div>
 
-    <script src="game.js?v=17"></script>
+    <script src="game.js?v=27"></script>
 </body>
 </html>

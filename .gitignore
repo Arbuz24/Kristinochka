@@ -1,0 +1,14 @@
+# --- Local tooling (NOT part of the game) ---
+.venv/
+.snapshots/
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# --- Logs / temp ---
+*.log
+npm-debug.log*

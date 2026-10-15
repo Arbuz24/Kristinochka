@@ -47,12 +47,12 @@
 
 ### assets/ui/
 Элементы интерфейса:
-- `photo_basement.png` - фото из подвала у Паши
-- `photo_skating.png` - фото Кристины на катке
-- `photo_mazapark.png` - фото в Мазапарке с кудрями
-- `photo_lighthouse.png` - фото у Шепелевского маяка
-- `photo_moscow.png` - фото счастливые в Москве
-- `photo_camry.png` - фото дедовской Камри
+- `photo_basement.jpg` - фото из подвала у Паши
+- `photo_skating.jpg` - фото Кристины на катке
+- `photo_mazapark.jpg` - фото в Мазапарке с кудрями
+- `photo_lighthouse.jpg` - фото у Шепелевского маяка
+- `photo_moscow.jpg` - фото счастливые в Москве
+- `photo_camry.jpg` - фото дедовской Камри
 
 ## Рекомендации по созданию ассетов
 
